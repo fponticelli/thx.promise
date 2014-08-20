@@ -827,6 +827,16 @@ thx.promise.Promise = function() {
 	this.state = haxe.ds.Option.None;
 };
 thx.promise.Promise.__name__ = ["thx","promise","Promise"];
+thx.promise.Promise.value = function(v) {
+	var deferred = new thx.promise.Deferred();
+	deferred.resolve(v);
+	return deferred.promise;
+};
+thx.promise.Promise.reject = function(err) {
+	var deferred = new thx.promise.Deferred();
+	deferred.reject(err);
+	return deferred.promise;
+};
 thx.promise.Promise.prototype = {
 	handlers: null
 	,state: null
@@ -850,11 +860,11 @@ thx.promise.Promise.prototype = {
 		});
 		return this;
 	}
-	,succeed: function(success) {
+	,success: function(success) {
 		return this.thenEither(success,function(_) {
 		});
 	}
-	,fail: function(failure) {
+	,failure: function(failure) {
 		return this.thenEither(function(_) {
 		},failure);
 	}
@@ -882,13 +892,13 @@ thx.promise.Promise.prototype = {
 		return deferred.promise;
 	}
 	,mapSuccess: function(success) {
-		return this.mapEither(success,function(_) {
-			return new thx.promise.Promise();
+		return this.mapEither(success,function(err) {
+			return thx.promise.Promise.reject(err);
 		});
 	}
 	,mapFailure: function(failure) {
-		return this.mapEither(function(_) {
-			return new thx.promise.Promise();
+		return this.mapEither(function(value) {
+			return thx.promise.Promise.value(value);
 		},failure);
 	}
 	,always: function(handler) {
@@ -958,7 +968,7 @@ thx.promise.Promise.prototype = {
 				break;
 			case 0:
 				var r = _g[2];
-				throw new thx.core.Error("promise was already " + Std.string(r) + ", can't apply new state " + Std.string(newstate),null,{ fileName : "Promise.hx", lineNumber : 91, className : "thx.promise.Promise", methodName : "setState"});
+				throw new thx.core.Error("promise was already " + Std.string(r) + ", can't apply new state " + Std.string(newstate),null,{ fileName : "Promise.hx", lineNumber : 102, className : "thx.promise.Promise", methodName : "setState"});
 				break;
 			}
 		}
@@ -999,7 +1009,7 @@ thx.promise.TestPromise.prototype = {
 		var close = utest.Assert.createAsync();
 		var deferred = new thx.promise.Deferred();
 		deferred.resolve(1);
-		deferred.promise.succeed(function(v) {
+		deferred.promise.success(function(v) {
 			utest.Assert.equals(1,v,null,{ fileName : "TestPromise.hx", lineNumber : 16, className : "thx.promise.TestPromise", methodName : "testResolveBefore"});
 			close();
 		});
@@ -1007,7 +1017,7 @@ thx.promise.TestPromise.prototype = {
 	,testResolveAfter: function() {
 		var close = utest.Assert.createAsync();
 		var deferred = new thx.promise.Deferred();
-		deferred.promise.succeed(function(v) {
+		deferred.promise.success(function(v) {
 			utest.Assert.equals(1,v,null,{ fileName : "TestPromise.hx", lineNumber : 25, className : "thx.promise.TestPromise", methodName : "testResolveAfter"});
 			close();
 		});
@@ -1018,7 +1028,7 @@ thx.promise.TestPromise.prototype = {
 		var deferred = new thx.promise.Deferred();
 		var error = new thx.core.Error("Nooooo!",null,{ fileName : "TestPromise.hx", lineNumber : 34, className : "thx.promise.TestPromise", methodName : "testRejectBefore"});
 		deferred.reject(error);
-		deferred.promise.fail(function(e) {
+		deferred.promise.failure(function(e) {
 			utest.Assert.equals(error,e,null,{ fileName : "TestPromise.hx", lineNumber : 37, className : "thx.promise.TestPromise", methodName : "testRejectBefore"});
 			close();
 		});
@@ -1027,7 +1037,7 @@ thx.promise.TestPromise.prototype = {
 		var close = utest.Assert.createAsync();
 		var deferred = new thx.promise.Deferred();
 		var error = new thx.core.Error("Nooooo!",null,{ fileName : "TestPromise.hx", lineNumber : 45, className : "thx.promise.TestPromise", methodName : "testRejectAfter"});
-		deferred.promise.fail(function(e) {
+		deferred.promise.failure(function(e) {
 			utest.Assert.equals(error,e,null,{ fileName : "TestPromise.hx", lineNumber : 47, className : "thx.promise.TestPromise", methodName : "testRejectAfter"});
 			close();
 		});

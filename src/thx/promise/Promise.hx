@@ -8,8 +8,40 @@ import haxe.ds.Option;
 import thx.core.Error;
 import thx.core.Tuple.Tuple2;
 using thx.core.Options;
+using thx.core.Arrays;
 
 class Promise<T> {
+	public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>>
+		return Deferred.create(function(resolve, reject) {
+			var results  = [],
+				counter  = 0,
+				hasError = false;
+			arr.mapi(function(p, i) {
+				p.thenEither(function(value) {
+					if(hasError) return;
+					results[i] = value;
+					counter++;
+					if(counter == arr.length)
+						resolve(results);
+				}, function(err) {
+					if(hasError) return;
+					hasError = true;
+					reject(err);
+				});
+			});
+		});
+
+	public static function value<T>(v : T) : Promise<T> {
+		var deferred = new Deferred();
+		deferred.resolve(v);
+		return deferred.promise;
+	}
+	public static function reject<T>(err : Error) : Promise<T> {
+		var deferred = new Deferred();
+		deferred.reject(err);
+		return deferred.promise;
+	}
+
 	var handlers : Array<PromiseState<T> -> Void>;
 	var state : Option<PromiseState<T>>;
 	private function new() {
@@ -31,10 +63,10 @@ class Promise<T> {
 		return this;
 	}
 
-	public function succeed(success : T -> Void)
+	public function success(success : T -> Void)
 		return thenEither(success, function(_){});
 
-	public function fail(failure : Error -> Void)
+	public function failure(failure : Error -> Void)
 		return thenEither(function(_){}, failure);
 
 	public function map<TOut>(handler : PromiseState<T> -> Promise<TOut>) {
@@ -55,10 +87,10 @@ class Promise<T> {
 	}
 
 	public function mapSuccess<TOut>(success : T -> Promise<TOut>)
-		return mapEither(success, function(_) return new Promise());
+		return mapEither(success, function(err) return Promise.reject(err));
 
-	public function mapFailure<TOut>(failure : Error -> Promise<TOut>)
-		return mapEither(function(_) return new Promise(), failure);
+	public function mapFailure(failure : Error -> Promise<T>)
+		return mapEither(function(value : T) return Promise.value(value), failure);
 
 	public function always(handler : Void -> Void)
 		then(function(_) handler());
@@ -122,6 +154,56 @@ class Promise<T> {
 					handler(result);
 			}
 		};
+}
+
+class Promise2 {
+	public static function join<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>> {
+		return Deferred.create(function(resolve, reject) {
+			var hasError = false,
+				counter = 0,
+				v1 : Null<T1> = null,
+				v2 : Null<T2> = null;
+
+			function complete() {
+				if(counter < 2)
+					return;
+				resolve(new Tuple2(v1, v2));
+			}
+
+			function handleError(error) {
+				if(hasError) return;
+				hasError = true;
+				reject(error);
+			}
+
+			p1.thenEither(function(v) {
+				if(hasError) return;
+				counter++;
+				v1 = v;
+				complete();
+			}, handleError);
+
+			p2.thenEither(function(v) {
+				if(hasError) return;
+				counter++;
+				v2 = v;
+				complete();
+			}, handleError);
+		});
+	}
+}
+
+class PromiseTuple2 {
+	public static function mapTuple<T1,T2,TOut>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Promise<TOut>) : Promise<TOut>
+		return promise.mapSuccess(function(t)
+			return success(t.e0, t.e1)
+		);
+
+	public static function thenTuple<T1,T2>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Void, ?failure : Error -> Void) : Void
+		promise.thenEither(
+			function(t) success(t.e0, t.e1),
+			null == failure ? function(_) {} : failure
+		);
 }
 
 enum PromiseState<T> {

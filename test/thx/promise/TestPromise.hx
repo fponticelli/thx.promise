@@ -12,7 +12,7 @@ class TestPromise {
 		var close = Assert.createAsync(),
 			deferred = new Deferred();
 		deferred.resolve(1);
-		deferred.promise.succeed(function(v) {
+		deferred.promise.success(function(v) {
 			Assert.equals(1, v);
 			close();
 		});
@@ -21,7 +21,7 @@ class TestPromise {
 	public function testResolveAfter() {
 		var close = Assert.createAsync(),
 			deferred = new Deferred();
-		deferred.promise.succeed(function(v) {
+		deferred.promise.success(function(v) {
 			Assert.equals(1, v);
 			close();
 		});
@@ -33,7 +33,7 @@ class TestPromise {
 			deferred = new Deferred(),
 			error = new Error("Nooooo!");
 		deferred.reject(error);
-		deferred.promise.fail(function(e) {
+		deferred.promise.failure(function(e) {
 			Assert.equals(error, e);
 			close();
 		});
@@ -43,7 +43,7 @@ class TestPromise {
 		var close = Assert.createAsync(),
 			deferred = new Deferred(),
 			error = new Error("Nooooo!");
-		deferred.promise.fail(function(e) {
+		deferred.promise.failure(function(e) {
 			Assert.equals(error, e);
 			close();
 		});
