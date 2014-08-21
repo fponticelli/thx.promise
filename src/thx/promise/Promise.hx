@@ -31,16 +31,11 @@ class Promise<T> {
 			});
 		});
 
-	public static function value<T>(v : T) : Promise<T> {
-		var deferred = new Deferred();
-		deferred.resolve(v);
-		return deferred.promise;
-	}
-	public static function reject<T>(err : Error) : Promise<T> {
-		var deferred = new Deferred();
-		deferred.reject(err);
-		return deferred.promise;
-	}
+	public static function value<T>(v : T) : Promise<T>
+		return Deferred.create(function(resolve, _) resolve(v));
+
+	public static function reject<T>(err : Error) : Promise<T>
+		return Deferred.create(function(_, reject) reject(err));
 
 	var handlers : Array<PromiseState<T> -> Void>;
 	var state : Option<PromiseState<T>>;
@@ -69,22 +64,16 @@ class Promise<T> {
 	public function failure(failure : Error -> Void)
 		return thenEither(function(_){}, failure);
 
-	public function map<TOut>(handler : PromiseState<T> -> Promise<TOut>) {
-		var deferred = new Deferred<TOut>();
-		then(function(r) {
-			handler(r).then(deferred.fulfill);
-		});
-		return deferred.promise;
-	}
+	public function map<TOut>(handler : PromiseState<T> -> Promise<TOut>)
+		return Deferred.createFulfill(function(fulfill)
+			then(function(result) handler(result).then(fulfill))
+		);
 
-	public function mapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>) {
-		var deferred = new Deferred<TOut>();
-		then(function(r) switch r {
-			case Success(value): success(value).then(deferred.fulfill);
-			case Failure(error): failure(error).then(deferred.fulfill);
-		});
-		return deferred.promise;
-	}
+	public function mapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>)
+		return map(function(result) return switch result {
+				case Success(value): success(value);
+				case Failure(error): failure(error);
+			});
 
 	public function mapSuccess<TOut>(success : T -> Promise<TOut>)
 		return mapEither(success, function(err) return Promise.reject(err));
@@ -154,6 +143,14 @@ class Promise<T> {
 					handler(result);
 			}
 		};
+}
+
+class Promises {
+	public static function log<T>(promise : Promise<T>, ?prefix : String = '')
+		return promise.thenEither(
+			function(r) trace('$prefix SUCCESS: $r'),
+			function(e) trace('$prefix ERROR: ${e.toString()}')
+		);
 }
 
 class Promise2 {

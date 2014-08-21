@@ -12,6 +12,12 @@ class Deferred<T>
 		return deferred.promise;
 	}
 
+	public static function createFulfill<T>(callback : (PromiseState<T> -> Void) -> Void) : Promise<T> {
+		var deferred = new Deferred<T>();
+		callback(deferred.fulfill);
+		return deferred.promise;
+	}
+
 	public var promise(default, null) : Promise<T>;
 	public function new()
 		promise = new Promise<T>();
