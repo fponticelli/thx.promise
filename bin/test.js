@@ -6,7 +6,10 @@ function $extend(from, fields) {
 	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
 }
-var EReg = function() { };
+var EReg = function(r,opt) {
+	opt = opt.split("u").join("");
+	this.r = new RegExp(r,opt);
+};
 EReg.__name__ = ["EReg"];
 EReg.prototype = {
 	r: null
@@ -164,6 +167,15 @@ var Std = function() { };
 Std.__name__ = ["Std"];
 Std.string = function(s) {
 	return js.Boot.__string_rec(s,"");
+};
+Std.parseInt = function(x) {
+	var v = parseInt(x,10);
+	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
+	if(isNaN(v)) return null;
+	return v;
+};
+Std.random = function(x) {
+	if(x <= 0) return 0; else return Math.floor(Math.random() * x);
 };
 var StringBuf = function() {
 	this.b = "";
@@ -627,6 +639,121 @@ js.Boot.__instanceof = function(o,cl) {
 };
 var thx = {};
 thx.core = {};
+thx.core.Arrays = function() { };
+thx.core.Arrays.__name__ = ["thx","core","Arrays"];
+thx.core.Arrays.same = function(a,b,eq) {
+	if(a == null || b == null || a.length != b.length) return false;
+	if(null == eq) eq = thx.core.Function.equality;
+	var _g1 = 0;
+	var _g = a.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(!eq(a[i],b[i])) return false;
+	}
+	return true;
+};
+thx.core.Arrays.cross = function(a,b) {
+	var r = [];
+	var _g = 0;
+	while(_g < a.length) {
+		var va = a[_g];
+		++_g;
+		var _g1 = 0;
+		while(_g1 < b.length) {
+			var vb = b[_g1];
+			++_g1;
+			r.push([va,vb]);
+		}
+	}
+	return r;
+};
+thx.core.Arrays.crossMulti = function(a) {
+	var acopy = a.slice();
+	var result = acopy.shift().map(function(v) {
+		return [v];
+	});
+	while(acopy.length > 0) {
+		var arr = acopy.shift();
+		var tresult = result;
+		result = [];
+		var _g = 0;
+		while(_g < arr.length) {
+			var v1 = arr[_g];
+			++_g;
+			var _g1 = 0;
+			while(_g1 < tresult.length) {
+				var ar = tresult[_g1];
+				++_g1;
+				var t = ar.slice();
+				t.push(v1);
+				result.push(t);
+			}
+		}
+	}
+	return result;
+};
+thx.core.Arrays.pushIf = function(arr,cond,value) {
+	if(cond) arr.push(value);
+	return arr;
+};
+thx.core.Arrays.eachPair = function(arr,handler) {
+	var _g1 = 0;
+	var _g = arr.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var _g3 = i;
+		var _g2 = arr.length;
+		while(_g3 < _g2) {
+			var j = _g3++;
+			if(!handler(arr[i],arr[j])) return;
+		}
+	}
+};
+thx.core.Arrays.mapi = function(arr,handler) {
+	return arr.map(handler);
+};
+thx.core.Arrays.flatMap = function(arr,callback) {
+	return thx.core.Arrays.flatten(arr.map(callback));
+};
+thx.core.Arrays.flatten = function(arr) {
+	return Array.prototype.concat.apply([],arr);
+};
+thx.core.Arrays.reduce = function(arr,callback,initial) {
+	return arr.reduce(callback,initial);
+};
+thx.core.Arrays.reducei = function(arr,callback,initial) {
+	return arr.reduce(callback,initial);
+};
+thx.core.Arrays.order = function(arr,sort) {
+	var n = arr.slice();
+	n.sort(sort);
+	return n;
+};
+thx.core.Arrays.isEmpty = function(arr) {
+	return arr.length == 0;
+};
+thx.core.Arrays.contains = function(arr,element,eq) {
+	if(null == eq) return HxOverrides.indexOf(arr,element,0) >= 0; else {
+		var _g1 = 0;
+		var _g = arr.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(eq(arr[i],element)) return true;
+		}
+		return false;
+	}
+};
+thx.core.Arrays.shuffle = function(a) {
+	var t = thx.core.Ints.range(a.length);
+	var arr = [];
+	while(t.length > 0) {
+		var pos = Std.random(t.length);
+		var index = t[pos];
+		t.splice(pos,1);
+		arr.push(a[index]);
+	}
+	return arr;
+};
 thx.core.Error = function(message,stack,pos) {
 	this.message = message;
 	if(null == stack) {
@@ -647,6 +774,73 @@ thx.core.Error.prototype = $extend(Error.prototype,{
 	,pos: null
 	,__class__: thx.core.Error
 });
+thx.core.F0 = function() { };
+thx.core.F0.__name__ = ["thx","core","F0"];
+thx.core.F0.join = function(fa,fb) {
+	return function() {
+		fa();
+		fb();
+	};
+};
+thx.core.F0.once = function(f) {
+	return function() {
+		f();
+		f = function() {
+		};
+	};
+};
+thx.core.F1 = function() { };
+thx.core.F1.__name__ = ["thx","core","F1"];
+thx.core.F1.compose = function(fa,fb) {
+	return function(v) {
+		return fa(fb(v));
+	};
+};
+thx.core.F1.join = function(fa,fb) {
+	return function(v) {
+		fa(v);
+		fb(v);
+	};
+};
+thx.core.Function = function() { };
+thx.core.Function.__name__ = ["thx","core","Function"];
+thx.core.Function.equality = function(a,b) {
+	return a == b;
+};
+thx.core.Ints = function() { };
+thx.core.Ints.__name__ = ["thx","core","Ints"];
+thx.core.Ints.clamp = function(v,min,max) {
+	if(v < min) return min; else if(v > max) return max; else return v;
+};
+thx.core.Ints.canParse = function(s) {
+	return thx.core.Ints.pattern_parse.match(s);
+};
+thx.core.Ints.min = function(a,b) {
+	if(a < b) return a; else return b;
+};
+thx.core.Ints.max = function(a,b) {
+	if(a > b) return a; else return b;
+};
+thx.core.Ints.parse = function(s) {
+	if(HxOverrides.substr(s,0,1) == "+") s = HxOverrides.substr(s,1,null);
+	return Std.parseInt(s);
+};
+thx.core.Ints.compare = function(a,b) {
+	return a - b;
+};
+thx.core.Ints.range = function(start,stop,step) {
+	if(step == null) step = 1;
+	if(null == stop) {
+		stop = start;
+		start = 0;
+	}
+	if((stop - start) / step == Infinity) throw "infinite range";
+	var range = [];
+	var i = -1;
+	var j;
+	if(step < 0) while((j = start + step * ++i) > stop) range.push(j); else while((j = start + step * ++i) < stop) range.push(j);
+	return range;
+};
 thx.core.Options = function() { };
 thx.core.Options.__name__ = ["thx","core","Options"];
 thx.core.Options.toValue = function(option) {
@@ -803,10 +997,20 @@ thx.promise.Deferred = function() {
 	this.promise = new thx.promise.Promise();
 };
 thx.promise.Deferred.__name__ = ["thx","promise","Deferred"];
+thx.promise.Deferred.create = function(callback) {
+	var deferred = new thx.promise.Deferred();
+	callback($bind(deferred,deferred.resolve),$bind(deferred,deferred.reject));
+	return deferred.promise;
+};
+thx.promise.Deferred.createFulfill = function(callback) {
+	var deferred = new thx.promise.Deferred();
+	callback($bind(deferred,deferred.fulfill));
+	return deferred.promise;
+};
 thx.promise.Deferred.prototype = {
 	promise: null
 	,rejectWith: function(error) {
-		return this.fulfill(thx.promise.PromiseState.Failure(thx.core.Error.fromDynamic(error,{ fileName : "Deferred.hx", lineNumber : 14, className : "thx.promise.Deferred", methodName : "rejectWith"})));
+		return this.fulfill(thx.promise.PromiseState.Failure(thx.core.Error.fromDynamic(error,{ fileName : "Deferred.hx", lineNumber : 26, className : "thx.promise.Deferred", methodName : "rejectWith"})));
 	}
 	,reject: function(error) {
 		return this.fulfill(thx.promise.PromiseState.Failure(error));
@@ -827,15 +1031,34 @@ thx.promise.Promise = function() {
 	this.state = haxe.ds.Option.None;
 };
 thx.promise.Promise.__name__ = ["thx","promise","Promise"];
+thx.promise.Promise.all = function(arr) {
+	return thx.promise.Deferred.create(function(resolve,reject) {
+		var results = [];
+		var counter = 0;
+		var hasError = false;
+		arr.map(function(p,i) {
+			p.thenEither(function(value) {
+				if(hasError) return;
+				results[i] = value;
+				counter++;
+				if(counter == arr.length) resolve(results);
+			},function(err) {
+				if(hasError) return;
+				hasError = true;
+				reject(err);
+			});
+		});
+	});
+};
 thx.promise.Promise.value = function(v) {
-	var deferred = new thx.promise.Deferred();
-	deferred.resolve(v);
-	return deferred.promise;
+	return thx.promise.Deferred.create(function(resolve,_) {
+		resolve(v);
+	});
 };
 thx.promise.Promise.reject = function(err) {
-	var deferred = new thx.promise.Deferred();
-	deferred.reject(err);
-	return deferred.promise;
+	return thx.promise.Deferred.create(function(_,reject) {
+		reject(err);
+	});
 };
 thx.promise.Promise.prototype = {
 	handlers: null
@@ -869,27 +1092,24 @@ thx.promise.Promise.prototype = {
 		},failure);
 	}
 	,map: function(handler) {
-		var deferred = new thx.promise.Deferred();
-		this.then(function(r) {
-			handler(r).then($bind(deferred,deferred.fulfill));
+		var _g = this;
+		return thx.promise.Deferred.createFulfill(function(fulfill) {
+			_g.then(function(result) {
+				handler(result).then(fulfill);
+			});
 		});
-		return deferred.promise;
 	}
 	,mapEither: function(success,failure) {
-		var deferred = new thx.promise.Deferred();
-		this.then(function(r) {
-			switch(r[1]) {
+		return this.map(function(result) {
+			switch(result[1]) {
 			case 1:
-				var value = r[2];
-				success(value).then($bind(deferred,deferred.fulfill));
-				break;
+				var value = result[2];
+				return success(value);
 			case 0:
-				var error = r[2];
-				failure(error).then($bind(deferred,deferred.fulfill));
-				break;
+				var error = result[2];
+				return failure(error);
 			}
 		});
-		return deferred.promise;
 	}
 	,mapSuccess: function(success) {
 		return this.mapEither(success,function(err) {
@@ -968,7 +1188,7 @@ thx.promise.Promise.prototype = {
 				break;
 			case 0:
 				var r = _g[2];
-				throw new thx.core.Error("promise was already " + Std.string(r) + ", can't apply new state " + Std.string(newstate),null,{ fileName : "Promise.hx", lineNumber : 102, className : "thx.promise.Promise", methodName : "setState"});
+				throw new thx.core.Error("promise was already " + Std.string(r) + ", can't apply new state " + Std.string(newstate),null,{ fileName : "Promise.hx", lineNumber : 108, className : "thx.promise.Promise", methodName : "setState"});
 				break;
 			}
 		}
@@ -998,6 +1218,60 @@ thx.promise.Promise.prototype = {
 	}
 	,__class__: thx.promise.Promise
 };
+thx.promise.Promises = function() { };
+thx.promise.Promises.__name__ = ["thx","promise","Promises"];
+thx.promise.Promises.log = function(promise,prefix) {
+	if(prefix == null) prefix = "";
+	return promise.thenEither(function(r) {
+		haxe.Log.trace("" + prefix + " SUCCESS: " + Std.string(r),{ fileName : "Promise.hx", lineNumber : 147, className : "thx.promise.Promises", methodName : "log"});
+	},function(e) {
+		haxe.Log.trace("" + prefix + " ERROR: " + e.toString(),{ fileName : "Promise.hx", lineNumber : 148, className : "thx.promise.Promises", methodName : "log"});
+	});
+};
+thx.promise.Promise2 = function() { };
+thx.promise.Promise2.__name__ = ["thx","promise","Promise2"];
+thx.promise.Promise2.join = function(p1,p2) {
+	return thx.promise.Deferred.create(function(resolve,reject) {
+		var hasError = false;
+		var counter = 0;
+		var v1 = null;
+		var v2 = null;
+		var complete = function() {
+			if(counter < 2) return;
+			resolve({ e0 : v1, e1 : v2});
+		};
+		var handleError = function(error) {
+			if(hasError) return;
+			hasError = true;
+			reject(error);
+		};
+		p1.thenEither(function(v) {
+			if(hasError) return;
+			counter++;
+			v1 = v;
+			complete();
+		},handleError);
+		p2.thenEither(function(v3) {
+			if(hasError) return;
+			counter++;
+			v2 = v3;
+			complete();
+		},handleError);
+	});
+};
+thx.promise.PromiseTuple2 = function() { };
+thx.promise.PromiseTuple2.__name__ = ["thx","promise","PromiseTuple2"];
+thx.promise.PromiseTuple2.mapTuple = function(promise,success) {
+	return promise.mapSuccess(function(t) {
+		return success(thx.core._Tuple.Tuple2_Impl_.get_e0(t),thx.core._Tuple.Tuple2_Impl_.get_e1(t));
+	});
+};
+thx.promise.PromiseTuple2.thenTuple = function(promise,success,failure) {
+	promise.thenEither(function(t) {
+		success(thx.core._Tuple.Tuple2_Impl_.get_e0(t),thx.core._Tuple.Tuple2_Impl_.get_e1(t));
+	},null == failure?function(_) {
+	}:failure);
+};
 thx.promise.PromiseState = { __ename__ : ["thx","promise","PromiseState"], __constructs__ : ["Failure","Success"] };
 thx.promise.PromiseState.Failure = function(err) { var $x = ["Failure",0,err]; $x.__enum__ = thx.promise.PromiseState; $x.toString = $estr; return $x; };
 thx.promise.PromiseState.Success = function(value) { var $x = ["Success",1,value]; $x.__enum__ = thx.promise.PromiseState; $x.toString = $estr; return $x; };
@@ -1006,42 +1280,132 @@ thx.promise.TestPromise = function() {
 thx.promise.TestPromise.__name__ = ["thx","promise","TestPromise"];
 thx.promise.TestPromise.prototype = {
 	testResolveBefore: function() {
-		var close = utest.Assert.createAsync();
+		var done = utest.Assert.createAsync();
 		var deferred = new thx.promise.Deferred();
 		deferred.resolve(1);
 		deferred.promise.success(function(v) {
-			utest.Assert.equals(1,v,null,{ fileName : "TestPromise.hx", lineNumber : 16, className : "thx.promise.TestPromise", methodName : "testResolveBefore"});
-			close();
+			utest.Assert.equals(1,v,null,{ fileName : "TestPromise.hx", lineNumber : 18, className : "thx.promise.TestPromise", methodName : "testResolveBefore"});
+			done();
 		});
 	}
 	,testResolveAfter: function() {
-		var close = utest.Assert.createAsync();
+		var done = utest.Assert.createAsync();
 		var deferred = new thx.promise.Deferred();
 		deferred.promise.success(function(v) {
-			utest.Assert.equals(1,v,null,{ fileName : "TestPromise.hx", lineNumber : 25, className : "thx.promise.TestPromise", methodName : "testResolveAfter"});
-			close();
+			utest.Assert.equals(1,v,null,{ fileName : "TestPromise.hx", lineNumber : 27, className : "thx.promise.TestPromise", methodName : "testResolveAfter"});
+			done();
 		});
 		deferred.resolve(1);
 	}
 	,testRejectBefore: function() {
-		var close = utest.Assert.createAsync();
+		var done = utest.Assert.createAsync();
 		var deferred = new thx.promise.Deferred();
-		var error = new thx.core.Error("Nooooo!",null,{ fileName : "TestPromise.hx", lineNumber : 34, className : "thx.promise.TestPromise", methodName : "testRejectBefore"});
+		var error = new thx.core.Error("Nooooo!",null,{ fileName : "TestPromise.hx", lineNumber : 36, className : "thx.promise.TestPromise", methodName : "testRejectBefore"});
 		deferred.reject(error);
 		deferred.promise.failure(function(e) {
-			utest.Assert.equals(error,e,null,{ fileName : "TestPromise.hx", lineNumber : 37, className : "thx.promise.TestPromise", methodName : "testRejectBefore"});
-			close();
+			utest.Assert.equals(error,e,null,{ fileName : "TestPromise.hx", lineNumber : 39, className : "thx.promise.TestPromise", methodName : "testRejectBefore"});
+			done();
 		});
 	}
 	,testRejectAfter: function() {
-		var close = utest.Assert.createAsync();
+		var done = utest.Assert.createAsync();
 		var deferred = new thx.promise.Deferred();
-		var error = new thx.core.Error("Nooooo!",null,{ fileName : "TestPromise.hx", lineNumber : 45, className : "thx.promise.TestPromise", methodName : "testRejectAfter"});
+		var error = new thx.core.Error("Nooooo!",null,{ fileName : "TestPromise.hx", lineNumber : 47, className : "thx.promise.TestPromise", methodName : "testRejectAfter"});
 		deferred.promise.failure(function(e) {
-			utest.Assert.equals(error,e,null,{ fileName : "TestPromise.hx", lineNumber : 47, className : "thx.promise.TestPromise", methodName : "testRejectAfter"});
-			close();
+			utest.Assert.equals(error,e,null,{ fileName : "TestPromise.hx", lineNumber : 49, className : "thx.promise.TestPromise", methodName : "testRejectAfter"});
+			done();
 		});
 		deferred.reject(error);
+	}
+	,testMapSuccessWithValue: function() {
+		var done = utest.Assert.createAsync();
+		thx.promise.Promise.value(1).mapSuccess(function(v) {
+			return thx.promise.Promise.value(v * 2);
+		}).success(function(v1) {
+			utest.Assert.equals(2,v1,null,{ fileName : "TestPromise.hx", lineNumber : 60, className : "thx.promise.TestPromise", methodName : "testMapSuccessWithValue"});
+			done();
+		});
+	}
+	,testMapSuccessWithFailure: function() {
+		var done = utest.Assert.createAsync();
+		var err = new thx.core.Error("error",null,{ fileName : "TestPromise.hx", lineNumber : 67, className : "thx.promise.TestPromise", methodName : "testMapSuccessWithFailure"});
+		thx.promise.Promise.reject(err).mapSuccess(function(v) {
+			utest.Assert.fail("should never touch this",{ fileName : "TestPromise.hx", lineNumber : 69, className : "thx.promise.TestPromise", methodName : "testMapSuccessWithFailure"});
+			return thx.promise.Promise.value(v * 2);
+		}).failure(function(e) {
+			utest.Assert.equals(err,e,null,{ fileName : "TestPromise.hx", lineNumber : 72, className : "thx.promise.TestPromise", methodName : "testMapSuccessWithFailure"});
+			done();
+		});
+	}
+	,testAllSuccess: function() {
+		var done = utest.Assert.createAsync();
+		thx.promise.Promise.all([thx.promise.Promise.value(1),thx.promise.Promise.value(2)]).success(function(arr) {
+			utest.Assert.equals(3,arr.reduce(function(acc,v) {
+				return acc + v;
+			},0),null,{ fileName : "TestPromise.hx", lineNumber : 83, className : "thx.promise.TestPromise", methodName : "testAllSuccess"});
+			done();
+		});
+	}
+	,testAllFailure: function() {
+		var done = utest.Assert.createAsync();
+		var err = new thx.core.Error("error",null,{ fileName : "TestPromise.hx", lineNumber : 90, className : "thx.promise.TestPromise", methodName : "testAllFailure"});
+		thx.promise.Promise.all([thx.promise.Promise.value(1),thx.promise.Promise.reject(err)]).success(function(arr) {
+			utest.Assert.fail("should never happen",{ fileName : "TestPromise.hx", lineNumber : 96, className : "thx.promise.TestPromise", methodName : "testAllFailure"});
+		}).failure(function(e) {
+			utest.Assert.equals(err,e,null,{ fileName : "TestPromise.hx", lineNumber : 99, className : "thx.promise.TestPromise", methodName : "testAllFailure"});
+			done();
+		});
+	}
+	,testJoinSuccess: function() {
+		var done = utest.Assert.createAsync();
+		thx.promise.Promise2.join(thx.promise.Promise.value(1),thx.promise.Promise.value(2)).success(function(t) {
+			utest.Assert.equals(1,thx.core._Tuple.Tuple2_Impl_.get_e0(t),null,{ fileName : "TestPromise.hx", lineNumber : 109, className : "thx.promise.TestPromise", methodName : "testJoinSuccess"});
+			utest.Assert.equals(2,thx.core._Tuple.Tuple2_Impl_.get_e1(t),null,{ fileName : "TestPromise.hx", lineNumber : 110, className : "thx.promise.TestPromise", methodName : "testJoinSuccess"});
+			done();
+		});
+	}
+	,testJoinFailure: function() {
+		var done = utest.Assert.createAsync();
+		var err = new thx.core.Error("error",null,{ fileName : "TestPromise.hx", lineNumber : 117, className : "thx.promise.TestPromise", methodName : "testJoinFailure"});
+		thx.promise.Promise2.join(thx.promise.Promise.value(1),thx.promise.Promise.reject(err)).failure(function(e) {
+			utest.Assert.equals(err,e,null,{ fileName : "TestPromise.hx", lineNumber : 121, className : "thx.promise.TestPromise", methodName : "testJoinFailure"});
+			done();
+		}).success(function(t) {
+			utest.Assert.fail("should never happen",{ fileName : "TestPromise.hx", lineNumber : 125, className : "thx.promise.TestPromise", methodName : "testJoinFailure"});
+		});
+	}
+	,testMapTupleSuccess: function() {
+		var done = utest.Assert.createAsync();
+		thx.promise.PromiseTuple2.mapTuple(thx.promise.Promise.value({ e0 : 1, e1 : 2}),function(a,b) {
+			return thx.promise.Promise.value(a / b);
+		}).success(function(v) {
+			utest.Assert.equals(0.5,v,null,{ fileName : "TestPromise.hx", lineNumber : 136, className : "thx.promise.TestPromise", methodName : "testMapTupleSuccess"});
+			done();
+		});
+	}
+	,testMapTupleFailure: function() {
+		var done = utest.Assert.createAsync();
+		var err = new thx.core.Error("error",null,{ fileName : "TestPromise.hx", lineNumber : 143, className : "thx.promise.TestPromise", methodName : "testMapTupleFailure"});
+		thx.promise.PromiseTuple2.mapTuple(thx.promise.Promise.reject(err),function(a,b) {
+			return thx.promise.Promise.value(a / b);
+		}).failure(function(e) {
+			utest.Assert.equals(err,e,null,{ fileName : "TestPromise.hx", lineNumber : 149, className : "thx.promise.TestPromise", methodName : "testMapTupleFailure"});
+			done();
+		});
+	}
+	,testAllMapToTupleFailure: function() {
+		var done = utest.Assert.createAsync();
+		var err = new thx.core.Error("error",null,{ fileName : "TestPromise.hx", lineNumber : 156, className : "thx.promise.TestPromise", methodName : "testAllMapToTupleFailure"});
+		thx.promise.PromiseTuple2.mapTuple(thx.promise.Promise.all([thx.promise.Promise.reject(err),thx.promise.Promise.reject(err)]).mapSuccess(function(v) {
+			utest.Assert.fail("should never happen",{ fileName : "TestPromise.hx", lineNumber : 162, className : "thx.promise.TestPromise", methodName : "testAllMapToTupleFailure"});
+			return thx.promise.Promise.value({ e0 : 1, e1 : 2});
+		}),function(a,b) {
+			utest.Assert.fail("should never happen",{ fileName : "TestPromise.hx", lineNumber : 166, className : "thx.promise.TestPromise", methodName : "testAllMapToTupleFailure"});
+			return thx.promise.Promise.value(a / b);
+		}).failure(function(e) {
+			utest.Assert.equals(err,e,null,{ fileName : "TestPromise.hx", lineNumber : 170, className : "thx.promise.TestPromise", methodName : "testAllMapToTupleFailure"});
+			done();
+		});
 	}
 	,__class__: thx.promise.TestPromise
 };
@@ -2800,6 +3164,17 @@ var Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = { __name__ : ["Class"]};
 var Enum = { };
+if(Array.prototype.map == null) Array.prototype.map = function(f) {
+	var a = [];
+	var _g1 = 0;
+	var _g = this.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		a[i] = f(this[i]);
+	}
+	return a;
+};
+thx.core.Ints.pattern_parse = new EReg("^[+-]?(\\d+|0x[0-9A-F]+)$","i");
 utest.TestHandler.POLLING_TIME = 10;
 utest.ui.text.HtmlReport.platform = "javascript";
 TestAll.main();

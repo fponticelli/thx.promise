@@ -1,7 +1,3 @@
-// TODO
-// p.await(other)  : Promise<Tuple2<T1, T2>>
-// p.await2(other) : Promise<Tuple3<T1, T2, T3>>
-// p.await3(other) : Promise<Tuple4<T1, T2, T3, T4>>
 package thx.promise;
 
 import haxe.ds.Option;
