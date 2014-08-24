@@ -106,8 +106,8 @@ class TestPromise {
 		Promise.value(1)
 			.join(Promise.value(2))
 			.success(function(t) {
-				Assert.equals(1, t.e0);
-				Assert.equals(2, t.e1);
+				Assert.equals(1, t._0);
+				Assert.equals(2, t._1);
 				done();
 			});
 	}

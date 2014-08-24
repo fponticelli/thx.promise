@@ -774,29 +774,33 @@ thx.core.Error.prototype = $extend(Error.prototype,{
 	,pos: null
 	,__class__: thx.core.Error
 });
-thx.core.F0 = function() { };
-thx.core.F0.__name__ = ["thx","core","F0"];
-thx.core.F0.join = function(fa,fb) {
+thx.core.Function0 = function() { };
+thx.core.Function0.__name__ = ["thx","core","Function0"];
+thx.core.Function0.noop = function() {
+};
+thx.core.Function0.join = function(fa,fb) {
 	return function() {
 		fa();
 		fb();
 	};
 };
-thx.core.F0.once = function(f) {
+thx.core.Function0.once = function(f) {
 	return function() {
 		f();
 		f = function() {
 		};
 	};
 };
-thx.core.F1 = function() { };
-thx.core.F1.__name__ = ["thx","core","F1"];
-thx.core.F1.compose = function(fa,fb) {
+thx.core.Function1 = function() { };
+thx.core.Function1.__name__ = ["thx","core","Function1"];
+thx.core.Function1.noop = function(_) {
+};
+thx.core.Function1.compose = function(fa,fb) {
 	return function(v) {
 		return fa(fb(v));
 	};
 };
-thx.core.F1.join = function(fa,fb) {
+thx.core.Function1.join = function(fa,fb) {
 	return function(v) {
 		fa(v);
 		fb(v);
@@ -892,105 +896,116 @@ thx.core.Options.equalsValue = function(a,b,eq) {
 	return thx.core.Options.equals(a,thx.core.Options.toOption(b));
 };
 thx.core._Tuple = {};
+thx.core._Tuple.Tuple1_Impl_ = function() { };
+thx.core._Tuple.Tuple1_Impl_.__name__ = ["thx","core","_Tuple","Tuple1_Impl_"];
+thx.core._Tuple.Tuple1_Impl_._new = function(_0) {
+	return _0;
+};
+thx.core._Tuple.Tuple1_Impl_.get__0 = function(this1) {
+	return this1;
+};
+thx.core._Tuple.Tuple1_Impl_.toString = function(this1) {
+	return "Tuple1(" + Std.string(this1) + ")";
+};
 thx.core._Tuple.Tuple2_Impl_ = function() { };
 thx.core._Tuple.Tuple2_Impl_.__name__ = ["thx","core","_Tuple","Tuple2_Impl_"];
-thx.core._Tuple.Tuple2_Impl_._new = function(e0,e1) {
-	return { e0 : e0, e1 : e1};
+thx.core._Tuple.Tuple2_Impl_._new = function(_0,_1) {
+	return { _0 : _0, _1 : _1};
 };
-thx.core._Tuple.Tuple2_Impl_.get_e0 = function(this1) {
-	return this1.e0;
+thx.core._Tuple.Tuple2_Impl_.get__0 = function(this1) {
+	return this1._0;
 };
-thx.core._Tuple.Tuple2_Impl_.get_e1 = function(this1) {
-	return this1.e1;
+thx.core._Tuple.Tuple2_Impl_.get__1 = function(this1) {
+	return this1._1;
 };
 thx.core._Tuple.Tuple2_Impl_.toString = function(this1) {
-	return "Tuple2(" + Std.string(thx.core._Tuple.Tuple2_Impl_.get_e0(this1)) + "," + Std.string(thx.core._Tuple.Tuple2_Impl_.get_e1(this1)) + ")";
+	return "Tuple2(" + Std.string(this1._0) + "," + Std.string(this1._1) + ")";
 };
 thx.core._Tuple.Tuple3_Impl_ = function() { };
 thx.core._Tuple.Tuple3_Impl_.__name__ = ["thx","core","_Tuple","Tuple3_Impl_"];
-thx.core._Tuple.Tuple3_Impl_._new = function(e0,e1,e2) {
-	return { e0 : e0, e1 : e1, e2 : e2};
+thx.core._Tuple.Tuple3_Impl_._new = function(_0,_1,_2) {
+	return { _0 : _0, _1 : _1, _2 : _2};
 };
-thx.core._Tuple.Tuple3_Impl_.get_e0 = function(this1) {
-	return this1.e0;
+thx.core._Tuple.Tuple3_Impl_.get__0 = function(this1) {
+	return this1._0;
 };
-thx.core._Tuple.Tuple3_Impl_.get_e1 = function(this1) {
-	return this1.e1;
+thx.core._Tuple.Tuple3_Impl_.get__1 = function(this1) {
+	return this1._1;
 };
-thx.core._Tuple.Tuple3_Impl_.get_e2 = function(this1) {
-	return this1.e2;
+thx.core._Tuple.Tuple3_Impl_.get__2 = function(this1) {
+	return this1._2;
 };
 thx.core._Tuple.Tuple3_Impl_.toString = function(this1) {
-	return "Tuple3(" + Std.string(thx.core._Tuple.Tuple3_Impl_.get_e0(this1)) + "," + Std.string(thx.core._Tuple.Tuple3_Impl_.get_e1(this1)) + "," + Std.string(thx.core._Tuple.Tuple3_Impl_.get_e2(this1)) + ")";
+	return "Tuple3(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + ")";
 };
 thx.core._Tuple.Tuple4_Impl_ = function() { };
 thx.core._Tuple.Tuple4_Impl_.__name__ = ["thx","core","_Tuple","Tuple4_Impl_"];
-thx.core._Tuple.Tuple4_Impl_._new = function(e0,e1,e2,e3) {
-	return { e0 : e0, e1 : e1, e2 : e2, e3 : e3};
+thx.core._Tuple.Tuple4_Impl_._new = function(_0,_1,_2,_3) {
+	return { _0 : _0, _1 : _1, _2 : _2, _3 : _3};
 };
-thx.core._Tuple.Tuple4_Impl_.get_e0 = function(this1) {
-	return this1.e0;
+thx.core._Tuple.Tuple4_Impl_.get__0 = function(this1) {
+	return this1._0;
 };
-thx.core._Tuple.Tuple4_Impl_.get_e1 = function(this1) {
-	return this1.e1;
+thx.core._Tuple.Tuple4_Impl_.get__1 = function(this1) {
+	return this1._1;
 };
-thx.core._Tuple.Tuple4_Impl_.get_e2 = function(this1) {
-	return this1.e2;
+thx.core._Tuple.Tuple4_Impl_.get__2 = function(this1) {
+	return this1._2;
 };
-thx.core._Tuple.Tuple4_Impl_.get_e3 = function(this1) {
-	return this1.e3;
+thx.core._Tuple.Tuple4_Impl_.get__3 = function(this1) {
+	return this1._3;
 };
 thx.core._Tuple.Tuple4_Impl_.toString = function(this1) {
-	return "Tuple4(" + Std.string(thx.core._Tuple.Tuple4_Impl_.get_e0(this1)) + "," + Std.string(thx.core._Tuple.Tuple4_Impl_.get_e1(this1)) + "," + Std.string(thx.core._Tuple.Tuple4_Impl_.get_e2(this1)) + "," + Std.string(thx.core._Tuple.Tuple4_Impl_.get_e3(this1)) + ")";
+	return "Tuple4(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + ")";
 };
 thx.core._Tuple.Tuple5_Impl_ = function() { };
 thx.core._Tuple.Tuple5_Impl_.__name__ = ["thx","core","_Tuple","Tuple5_Impl_"];
-thx.core._Tuple.Tuple5_Impl_._new = function(e0,e1,e2,e3,e4) {
-	return { e0 : e0, e1 : e1, e2 : e2, e3 : e3, e4 : e4};
+thx.core._Tuple.Tuple5_Impl_._new = function(_0,_1,_2,_3,_4) {
+	return { _0 : _0, _1 : _1, _2 : _2, _3 : _3, _4 : _4};
 };
-thx.core._Tuple.Tuple5_Impl_.get_e0 = function(this1) {
-	return this1.e0;
+thx.core._Tuple.Tuple5_Impl_.get__0 = function(this1) {
+	return this1._0;
 };
-thx.core._Tuple.Tuple5_Impl_.get_e1 = function(this1) {
-	return this1.e1;
+thx.core._Tuple.Tuple5_Impl_.get__1 = function(this1) {
+	return this1._1;
 };
-thx.core._Tuple.Tuple5_Impl_.get_e2 = function(this1) {
-	return this1.e2;
+thx.core._Tuple.Tuple5_Impl_.get__2 = function(this1) {
+	return this1._2;
 };
-thx.core._Tuple.Tuple5_Impl_.get_e3 = function(this1) {
-	return this1.e3;
+thx.core._Tuple.Tuple5_Impl_.get__3 = function(this1) {
+	return this1._3;
 };
-thx.core._Tuple.Tuple5_Impl_.get_e4 = function(this1) {
-	return this1.e4;
+thx.core._Tuple.Tuple5_Impl_.get__4 = function(this1) {
+	return this1._4;
 };
 thx.core._Tuple.Tuple5_Impl_.toString = function(this1) {
-	return "Tuple5(" + Std.string(thx.core._Tuple.Tuple5_Impl_.get_e0(this1)) + "," + Std.string(thx.core._Tuple.Tuple5_Impl_.get_e1(this1)) + "," + Std.string(thx.core._Tuple.Tuple5_Impl_.get_e2(this1)) + "," + Std.string(thx.core._Tuple.Tuple5_Impl_.get_e3(this1)) + "," + Std.string(thx.core._Tuple.Tuple5_Impl_.get_e4(this1)) + ")";
+	return "Tuple5(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + "," + Std.string(this1._4) + ")";
 };
 thx.core._Tuple.Tuple6_Impl_ = function() { };
 thx.core._Tuple.Tuple6_Impl_.__name__ = ["thx","core","_Tuple","Tuple6_Impl_"];
-thx.core._Tuple.Tuple6_Impl_._new = function(e0,e1,e2,e3,e4,e5) {
-	return { e0 : e0, e1 : e1, e2 : e2, e3 : e3, e4 : e4, e5 : e5};
+thx.core._Tuple.Tuple6_Impl_._new = function(_0,_1,_2,_3,_4,_5) {
+	return { _0 : _0, _1 : _1, _2 : _2, _3 : _3, _4 : _4, _5 : _5};
 };
-thx.core._Tuple.Tuple6_Impl_.get_e0 = function(this1) {
-	return this1.e0;
+thx.core._Tuple.Tuple6_Impl_.get__0 = function(this1) {
+	return this1._0;
 };
-thx.core._Tuple.Tuple6_Impl_.get_e1 = function(this1) {
-	return this1.e1;
+thx.core._Tuple.Tuple6_Impl_.get__1 = function(this1) {
+	return this1._1;
 };
-thx.core._Tuple.Tuple6_Impl_.get_e2 = function(this1) {
-	return this1.e2;
+thx.core._Tuple.Tuple6_Impl_.get__2 = function(this1) {
+	return this1._2;
 };
-thx.core._Tuple.Tuple6_Impl_.get_e3 = function(this1) {
-	return this1.e3;
+thx.core._Tuple.Tuple6_Impl_.get__3 = function(this1) {
+	return this1._3;
 };
-thx.core._Tuple.Tuple6_Impl_.get_e4 = function(this1) {
-	return this1.e4;
+thx.core._Tuple.Tuple6_Impl_.get__4 = function(this1) {
+	return this1._4;
 };
-thx.core._Tuple.Tuple6_Impl_.get_e5 = function(this1) {
-	return this1.e5;
+thx.core._Tuple.Tuple6_Impl_.get__5 = function(this1) {
+	return this1._5;
 };
 thx.core._Tuple.Tuple6_Impl_.toString = function(this1) {
-	return "Tuple6(" + Std.string(thx.core._Tuple.Tuple6_Impl_.get_e0(this1)) + "," + Std.string(thx.core._Tuple.Tuple6_Impl_.get_e1(this1)) + "," + Std.string(thx.core._Tuple.Tuple6_Impl_.get_e2(this1)) + "," + Std.string(thx.core._Tuple.Tuple6_Impl_.get_e3(this1)) + "," + Std.string(thx.core._Tuple.Tuple6_Impl_.get_e4(this1)) + "," + Std.string(thx.core._Tuple.Tuple6_Impl_.get_e5(this1)) + ")";
+	return "Tuple6(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + "," + Std.string(this1._4) + "," + Std.string(this1._5) + ")";
 };
 thx.promise = {};
 thx.promise.Deferred = function() {
@@ -1238,7 +1253,7 @@ thx.promise.Promise2.join = function(p1,p2) {
 		var v2 = null;
 		var complete = function() {
 			if(counter < 2) return;
-			resolve({ e0 : v1, e1 : v2});
+			resolve({ _0 : v1, _1 : v2});
 		};
 		var handleError = function(error) {
 			if(hasError) return;
@@ -1263,12 +1278,12 @@ thx.promise.PromiseTuple2 = function() { };
 thx.promise.PromiseTuple2.__name__ = ["thx","promise","PromiseTuple2"];
 thx.promise.PromiseTuple2.mapTuple = function(promise,success) {
 	return promise.mapSuccess(function(t) {
-		return success(thx.core._Tuple.Tuple2_Impl_.get_e0(t),thx.core._Tuple.Tuple2_Impl_.get_e1(t));
+		return success(t._0,t._1);
 	});
 };
 thx.promise.PromiseTuple2.thenTuple = function(promise,success,failure) {
 	promise.thenEither(function(t) {
-		success(thx.core._Tuple.Tuple2_Impl_.get_e0(t),thx.core._Tuple.Tuple2_Impl_.get_e1(t));
+		success(t._0,t._1);
 	},null == failure?function(_) {
 	}:failure);
 };
@@ -1359,8 +1374,8 @@ thx.promise.TestPromise.prototype = {
 	,testJoinSuccess: function() {
 		var done = utest.Assert.createAsync();
 		thx.promise.Promise2.join(thx.promise.Promise.value(1),thx.promise.Promise.value(2)).success(function(t) {
-			utest.Assert.equals(1,thx.core._Tuple.Tuple2_Impl_.get_e0(t),null,{ fileName : "TestPromise.hx", lineNumber : 109, className : "thx.promise.TestPromise", methodName : "testJoinSuccess"});
-			utest.Assert.equals(2,thx.core._Tuple.Tuple2_Impl_.get_e1(t),null,{ fileName : "TestPromise.hx", lineNumber : 110, className : "thx.promise.TestPromise", methodName : "testJoinSuccess"});
+			utest.Assert.equals(1,t._0,null,{ fileName : "TestPromise.hx", lineNumber : 109, className : "thx.promise.TestPromise", methodName : "testJoinSuccess"});
+			utest.Assert.equals(2,t._1,null,{ fileName : "TestPromise.hx", lineNumber : 110, className : "thx.promise.TestPromise", methodName : "testJoinSuccess"});
 			done();
 		});
 	}
@@ -1376,7 +1391,7 @@ thx.promise.TestPromise.prototype = {
 	}
 	,testMapTupleSuccess: function() {
 		var done = utest.Assert.createAsync();
-		thx.promise.PromiseTuple2.mapTuple(thx.promise.Promise.value({ e0 : 1, e1 : 2}),function(a,b) {
+		thx.promise.PromiseTuple2.mapTuple(thx.promise.Promise.value({ _0 : 1, _1 : 2}),function(a,b) {
 			return thx.promise.Promise.value(a / b);
 		}).success(function(v) {
 			utest.Assert.equals(0.5,v,null,{ fileName : "TestPromise.hx", lineNumber : 136, className : "thx.promise.TestPromise", methodName : "testMapTupleSuccess"});
@@ -1398,7 +1413,7 @@ thx.promise.TestPromise.prototype = {
 		var err = new thx.core.Error("error",null,{ fileName : "TestPromise.hx", lineNumber : 156, className : "thx.promise.TestPromise", methodName : "testAllMapToTupleFailure"});
 		thx.promise.PromiseTuple2.mapTuple(thx.promise.Promise.all([thx.promise.Promise.reject(err),thx.promise.Promise.reject(err)]).mapSuccess(function(v) {
 			utest.Assert.fail("should never happen",{ fileName : "TestPromise.hx", lineNumber : 162, className : "thx.promise.TestPromise", methodName : "testAllMapToTupleFailure"});
-			return thx.promise.Promise.value({ e0 : 1, e1 : 2});
+			return thx.promise.Promise.value({ _0 : 1, _1 : 2});
 		}),function(a,b) {
 			utest.Assert.fail("should never happen",{ fileName : "TestPromise.hx", lineNumber : 166, className : "thx.promise.TestPromise", methodName : "testAllMapToTupleFailure"});
 			return thx.promise.Promise.value(a / b);

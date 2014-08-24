@@ -189,12 +189,12 @@ class Promise2 {
 class PromiseTuple2 {
 	public static function mapTuple<T1,T2,TOut>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Promise<TOut>) : Promise<TOut>
 		return promise.mapSuccess(function(t)
-			return success(t.e0, t.e1)
+			return success(t._0, t._1)
 		);
 
 	public static function thenTuple<T1,T2>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Void, ?failure : Error -> Void) : Void
 		promise.thenEither(
-			function(t) success(t.e0, t.e1),
+			function(t) success(t._0, t._1),
 			null == failure ? function(_) {} : failure
 		);
 }
