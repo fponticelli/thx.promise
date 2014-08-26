@@ -1,5 +1,4 @@
 (function () { "use strict";
-var $estr = function() { return js.Boot.__string_rec(this,''); };
 function $extend(from, fields) {
 	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
 	for (var name in fields) proto[name] = fields[name];
@@ -234,27 +233,20 @@ TestAll.prototype = {
 };
 var ValueType = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] };
 ValueType.TNull = ["TNull",0];
-ValueType.TNull.toString = $estr;
 ValueType.TNull.__enum__ = ValueType;
 ValueType.TInt = ["TInt",1];
-ValueType.TInt.toString = $estr;
 ValueType.TInt.__enum__ = ValueType;
 ValueType.TFloat = ["TFloat",2];
-ValueType.TFloat.toString = $estr;
 ValueType.TFloat.__enum__ = ValueType;
 ValueType.TBool = ["TBool",3];
-ValueType.TBool.toString = $estr;
 ValueType.TBool.__enum__ = ValueType;
 ValueType.TObject = ["TObject",4];
-ValueType.TObject.toString = $estr;
 ValueType.TObject.__enum__ = ValueType;
 ValueType.TFunction = ["TFunction",5];
-ValueType.TFunction.toString = $estr;
 ValueType.TFunction.__enum__ = ValueType;
-ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; };
-ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; };
+ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; return $x; };
+ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; return $x; };
 ValueType.TUnknown = ["TUnknown",8];
-ValueType.TUnknown.toString = $estr;
 ValueType.TUnknown.__enum__ = ValueType;
 var Type = function() { };
 Type.__name__ = ["Type"];
@@ -320,12 +312,11 @@ Type.enumIndex = function(e) {
 var haxe = {};
 haxe.StackItem = { __ename__ : ["haxe","StackItem"], __constructs__ : ["CFunction","Module","FilePos","Method","LocalFunction"] };
 haxe.StackItem.CFunction = ["CFunction",0];
-haxe.StackItem.CFunction.toString = $estr;
 haxe.StackItem.CFunction.__enum__ = haxe.StackItem;
-haxe.StackItem.Module = function(m) { var $x = ["Module",1,m]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
-haxe.StackItem.FilePos = function(s,file,line) { var $x = ["FilePos",2,s,file,line]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
-haxe.StackItem.Method = function(classname,method) { var $x = ["Method",3,classname,method]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
-haxe.StackItem.LocalFunction = function(v) { var $x = ["LocalFunction",4,v]; $x.__enum__ = haxe.StackItem; $x.toString = $estr; return $x; };
+haxe.StackItem.Module = function(m) { var $x = ["Module",1,m]; $x.__enum__ = haxe.StackItem; return $x; };
+haxe.StackItem.FilePos = function(s,file,line) { var $x = ["FilePos",2,s,file,line]; $x.__enum__ = haxe.StackItem; return $x; };
+haxe.StackItem.Method = function(classname,method) { var $x = ["Method",3,classname,method]; $x.__enum__ = haxe.StackItem; return $x; };
+haxe.StackItem.LocalFunction = function(v) { var $x = ["LocalFunction",4,v]; $x.__enum__ = haxe.StackItem; return $x; };
 haxe.CallStack = function() { };
 haxe.CallStack.__name__ = ["haxe","CallStack"];
 haxe.CallStack.callStack = function() {
@@ -458,9 +449,8 @@ haxe.ds.IntMap = function() { };
 haxe.ds.IntMap.__name__ = ["haxe","ds","IntMap"];
 haxe.ds.IntMap.__interfaces__ = [IMap];
 haxe.ds.Option = { __ename__ : ["haxe","ds","Option"], __constructs__ : ["Some","None"] };
-haxe.ds.Option.Some = function(v) { var $x = ["Some",0,v]; $x.__enum__ = haxe.ds.Option; $x.toString = $estr; return $x; };
+haxe.ds.Option.Some = function(v) { var $x = ["Some",0,v]; $x.__enum__ = haxe.ds.Option; return $x; };
 haxe.ds.Option.None = ["None",1];
-haxe.ds.Option.None.toString = $estr;
 haxe.ds.Option.None.__enum__ = haxe.ds.Option;
 haxe.ds.StringMap = function() {
 	this.h = { };
@@ -845,6 +835,9 @@ thx.core.Ints.range = function(start,stop,step) {
 	if(step < 0) while((j = start + step * ++i) > stop) range.push(j); else while((j = start + step * ++i) < stop) range.push(j);
 	return range;
 };
+thx.core.Nil = { __ename__ : ["thx","core","Nil"], __constructs__ : ["nil"] };
+thx.core.Nil.nil = ["nil",0];
+thx.core.Nil.nil.__enum__ = thx.core.Nil;
 thx.core.Options = function() { };
 thx.core.Options.__name__ = ["thx","core","Options"];
 thx.core.Options.toValue = function(option) {
@@ -896,6 +889,23 @@ thx.core.Options.equalsValue = function(a,b,eq) {
 	return thx.core.Options.equals(a,thx.core.Options.toOption(b));
 };
 thx.core._Tuple = {};
+thx.core._Tuple.Tuple0_Impl_ = function() { };
+thx.core._Tuple.Tuple0_Impl_.__name__ = ["thx","core","_Tuple","Tuple0_Impl_"];
+thx.core._Tuple.Tuple0_Impl_._new = function() {
+	return thx.core.Nil.nil;
+};
+thx.core._Tuple.Tuple0_Impl_.toTuple1 = function(this1,v) {
+	return v;
+};
+thx.core._Tuple.Tuple0_Impl_.toString = function(this1) {
+	return "Tuple0()";
+};
+thx.core._Tuple.Tuple0_Impl_.toNil = function(this1) {
+	return this1;
+};
+thx.core._Tuple.Tuple0_Impl_.nilToTuple = function(v) {
+	return thx.core.Nil.nil;
+};
 thx.core._Tuple.Tuple1_Impl_ = function() { };
 thx.core._Tuple.Tuple1_Impl_.__name__ = ["thx","core","_Tuple","Tuple1_Impl_"];
 thx.core._Tuple.Tuple1_Impl_._new = function(_0) {
@@ -903,6 +913,9 @@ thx.core._Tuple.Tuple1_Impl_._new = function(_0) {
 };
 thx.core._Tuple.Tuple1_Impl_.get__0 = function(this1) {
 	return this1;
+};
+thx.core._Tuple.Tuple1_Impl_.toTuple2 = function(this1,v) {
+	return { _0 : this1, _1 : v};
 };
 thx.core._Tuple.Tuple1_Impl_.toString = function(this1) {
 	return "Tuple1(" + Std.string(this1) + ")";
@@ -917,6 +930,9 @@ thx.core._Tuple.Tuple2_Impl_.get__0 = function(this1) {
 };
 thx.core._Tuple.Tuple2_Impl_.get__1 = function(this1) {
 	return this1._1;
+};
+thx.core._Tuple.Tuple2_Impl_.toTuple3 = function(this1,v) {
+	return { _0 : this1._0, _1 : this1._1, _2 : v};
 };
 thx.core._Tuple.Tuple2_Impl_.toString = function(this1) {
 	return "Tuple2(" + Std.string(this1._0) + "," + Std.string(this1._1) + ")";
@@ -934,6 +950,9 @@ thx.core._Tuple.Tuple3_Impl_.get__1 = function(this1) {
 };
 thx.core._Tuple.Tuple3_Impl_.get__2 = function(this1) {
 	return this1._2;
+};
+thx.core._Tuple.Tuple3_Impl_.toTuple4 = function(this1,v) {
+	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : v};
 };
 thx.core._Tuple.Tuple3_Impl_.toString = function(this1) {
 	return "Tuple3(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + ")";
@@ -954,6 +973,9 @@ thx.core._Tuple.Tuple4_Impl_.get__2 = function(this1) {
 };
 thx.core._Tuple.Tuple4_Impl_.get__3 = function(this1) {
 	return this1._3;
+};
+thx.core._Tuple.Tuple4_Impl_.toTuple5 = function(this1,v) {
+	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : this1._3, _4 : v};
 };
 thx.core._Tuple.Tuple4_Impl_.toString = function(this1) {
 	return "Tuple4(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + ")";
@@ -977,6 +999,9 @@ thx.core._Tuple.Tuple5_Impl_.get__3 = function(this1) {
 };
 thx.core._Tuple.Tuple5_Impl_.get__4 = function(this1) {
 	return this1._4;
+};
+thx.core._Tuple.Tuple5_Impl_.toTuple6 = function(this1,v) {
+	return { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : this1._3, _4 : this1._4, _5 : v};
 };
 thx.core._Tuple.Tuple5_Impl_.toString = function(this1) {
 	return "Tuple5(" + Std.string(this1._0) + "," + Std.string(this1._1) + "," + Std.string(this1._2) + "," + Std.string(this1._3) + "," + Std.string(this1._4) + ")";
@@ -1274,8 +1299,116 @@ thx.promise.Promise2.join = function(p1,p2) {
 		},handleError);
 	});
 };
+thx.promise.PromiseTuple6 = function() { };
+thx.promise.PromiseTuple6.__name__ = ["thx","promise","PromiseTuple6"];
+thx.promise.PromiseTuple6.mapTuple = function(promise,success) {
+	return promise.mapSuccess(function(t) {
+		return success(t._0,t._1,t._2,t._3,t._4,t._5);
+	});
+};
+thx.promise.PromiseTuple6.thenTuple = function(promise,success,failure) {
+	promise.thenEither(function(t) {
+		success(t._0,t._1,t._2,t._3,t._4,t._5);
+	},null == failure?function(_) {
+	}:failure);
+};
+thx.promise.PromiseTuple5 = function() { };
+thx.promise.PromiseTuple5.__name__ = ["thx","promise","PromiseTuple5"];
+thx.promise.PromiseTuple5.join = function(p1,p2) {
+	return thx.promise.Deferred.create(function(resolve,reject) {
+		thx.promise.Promise2.join(p1,p2).thenEither(function(t) {
+			resolve((function($this) {
+				var $r;
+				var this1 = t._0;
+				$r = { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : this1._3, _4 : this1._4, _5 : t._1};
+				return $r;
+			}(this)));
+		},function(e) {
+			reject(e);
+		});
+	});
+};
+thx.promise.PromiseTuple5.mapTuple = function(promise,success) {
+	return promise.mapSuccess(function(t) {
+		return success(t._0,t._1,t._2,t._3,t._4);
+	});
+};
+thx.promise.PromiseTuple5.thenTuple = function(promise,success,failure) {
+	promise.thenEither(function(t) {
+		success(t._0,t._1,t._2,t._3,t._4);
+	},null == failure?function(_) {
+	}:failure);
+};
+thx.promise.PromiseTuple4 = function() { };
+thx.promise.PromiseTuple4.__name__ = ["thx","promise","PromiseTuple4"];
+thx.promise.PromiseTuple4.join = function(p1,p2) {
+	return thx.promise.Deferred.create(function(resolve,reject) {
+		thx.promise.Promise2.join(p1,p2).thenEither(function(t) {
+			resolve((function($this) {
+				var $r;
+				var this1 = t._0;
+				$r = { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : this1._3, _4 : t._1};
+				return $r;
+			}(this)));
+		},function(e) {
+			reject(e);
+		});
+	});
+};
+thx.promise.PromiseTuple4.mapTuple = function(promise,success) {
+	return promise.mapSuccess(function(t) {
+		return success(t._0,t._1,t._2,t._3);
+	});
+};
+thx.promise.PromiseTuple4.thenTuple = function(promise,success,failure) {
+	promise.thenEither(function(t) {
+		success(t._0,t._1,t._2,t._3);
+	},null == failure?function(_) {
+	}:failure);
+};
+thx.promise.PromiseTuple3 = function() { };
+thx.promise.PromiseTuple3.__name__ = ["thx","promise","PromiseTuple3"];
+thx.promise.PromiseTuple3.join = function(p1,p2) {
+	return thx.promise.Deferred.create(function(resolve,reject) {
+		thx.promise.Promise2.join(p1,p2).thenEither(function(t) {
+			resolve((function($this) {
+				var $r;
+				var this1 = t._0;
+				$r = { _0 : this1._0, _1 : this1._1, _2 : this1._2, _3 : t._1};
+				return $r;
+			}(this)));
+		},function(e) {
+			reject(e);
+		});
+	});
+};
+thx.promise.PromiseTuple3.mapTuple = function(promise,success) {
+	return promise.mapSuccess(function(t) {
+		return success(t._0,t._1,t._2);
+	});
+};
+thx.promise.PromiseTuple3.thenTuple = function(promise,success,failure) {
+	promise.thenEither(function(t) {
+		success(t._0,t._1,t._2);
+	},null == failure?function(_) {
+	}:failure);
+};
 thx.promise.PromiseTuple2 = function() { };
 thx.promise.PromiseTuple2.__name__ = ["thx","promise","PromiseTuple2"];
+thx.promise.PromiseTuple2.join = function(p1,p2) {
+	return thx.promise.Deferred.create(function(resolve,reject) {
+		thx.promise.Promise2.join(p1,p2).thenEither(function(t) {
+			resolve((function($this) {
+				var $r;
+				var this1 = t._0;
+				$r = { _0 : this1._0, _1 : this1._1, _2 : t._1};
+				return $r;
+			}(this)));
+		},function(e) {
+			reject(e);
+		});
+	});
+};
 thx.promise.PromiseTuple2.mapTuple = function(promise,success) {
 	return promise.mapSuccess(function(t) {
 		return success(t._0,t._1);
@@ -1288,8 +1421,8 @@ thx.promise.PromiseTuple2.thenTuple = function(promise,success,failure) {
 	}:failure);
 };
 thx.promise.PromiseState = { __ename__ : ["thx","promise","PromiseState"], __constructs__ : ["Failure","Success"] };
-thx.promise.PromiseState.Failure = function(err) { var $x = ["Failure",0,err]; $x.__enum__ = thx.promise.PromiseState; $x.toString = $estr; return $x; };
-thx.promise.PromiseState.Success = function(value) { var $x = ["Success",1,value]; $x.__enum__ = thx.promise.PromiseState; $x.toString = $estr; return $x; };
+thx.promise.PromiseState.Failure = function(err) { var $x = ["Failure",0,err]; $x.__enum__ = thx.promise.PromiseState; return $x; };
+thx.promise.PromiseState.Success = function(value) { var $x = ["Success",1,value]; $x.__enum__ = thx.promise.PromiseState; return $x; };
 thx.promise.TestPromise = function() {
 };
 thx.promise.TestPromise.__name__ = ["thx","promise","TestPromise"];
@@ -1419,6 +1552,16 @@ thx.promise.TestPromise.prototype = {
 			return thx.promise.Promise.value(a / b);
 		}).failure(function(e) {
 			utest.Assert.equals(err,e,null,{ fileName : "TestPromise.hx", lineNumber : 170, className : "thx.promise.TestPromise", methodName : "testAllMapToTupleFailure"});
+			done();
+		});
+	}
+	,testThenTuple3: function() {
+		var done = utest.Assert.createAsync();
+		var err = new thx.core.Error("error",null,{ fileName : "TestPromise.hx", lineNumber : 177, className : "thx.promise.TestPromise", methodName : "testThenTuple3"});
+		thx.promise.PromiseTuple3.thenTuple(thx.promise.Promise.value({ _0 : 1, _1 : "a", _2 : 0.2}),function(a,b,c) {
+			utest.Assert.equals(1,a,null,{ fileName : "TestPromise.hx", lineNumber : 180, className : "thx.promise.TestPromise", methodName : "testThenTuple3"});
+			utest.Assert.equals("a",b,null,{ fileName : "TestPromise.hx", lineNumber : 181, className : "thx.promise.TestPromise", methodName : "testThenTuple3"});
+			utest.Assert.equals(0.2,c,null,{ fileName : "TestPromise.hx", lineNumber : 182, className : "thx.promise.TestPromise", methodName : "testThenTuple3"});
 			done();
 		});
 	}
@@ -1898,18 +2041,17 @@ utest.Assert.typeToString = function(t) {
 	return "<unable to retrieve type name>";
 };
 utest.Assertation = { __ename__ : ["utest","Assertation"], __constructs__ : ["Success","Failure","Error","SetupError","TeardownError","TimeoutError","AsyncError","Warning"] };
-utest.Assertation.Success = function(pos) { var $x = ["Success",0,pos]; $x.__enum__ = utest.Assertation; $x.toString = $estr; return $x; };
-utest.Assertation.Failure = function(msg,pos) { var $x = ["Failure",1,msg,pos]; $x.__enum__ = utest.Assertation; $x.toString = $estr; return $x; };
-utest.Assertation.Error = function(e,stack) { var $x = ["Error",2,e,stack]; $x.__enum__ = utest.Assertation; $x.toString = $estr; return $x; };
-utest.Assertation.SetupError = function(e,stack) { var $x = ["SetupError",3,e,stack]; $x.__enum__ = utest.Assertation; $x.toString = $estr; return $x; };
-utest.Assertation.TeardownError = function(e,stack) { var $x = ["TeardownError",4,e,stack]; $x.__enum__ = utest.Assertation; $x.toString = $estr; return $x; };
-utest.Assertation.TimeoutError = function(missedAsyncs,stack) { var $x = ["TimeoutError",5,missedAsyncs,stack]; $x.__enum__ = utest.Assertation; $x.toString = $estr; return $x; };
-utest.Assertation.AsyncError = function(e,stack) { var $x = ["AsyncError",6,e,stack]; $x.__enum__ = utest.Assertation; $x.toString = $estr; return $x; };
-utest.Assertation.Warning = function(msg) { var $x = ["Warning",7,msg]; $x.__enum__ = utest.Assertation; $x.toString = $estr; return $x; };
+utest.Assertation.Success = function(pos) { var $x = ["Success",0,pos]; $x.__enum__ = utest.Assertation; return $x; };
+utest.Assertation.Failure = function(msg,pos) { var $x = ["Failure",1,msg,pos]; $x.__enum__ = utest.Assertation; return $x; };
+utest.Assertation.Error = function(e,stack) { var $x = ["Error",2,e,stack]; $x.__enum__ = utest.Assertation; return $x; };
+utest.Assertation.SetupError = function(e,stack) { var $x = ["SetupError",3,e,stack]; $x.__enum__ = utest.Assertation; return $x; };
+utest.Assertation.TeardownError = function(e,stack) { var $x = ["TeardownError",4,e,stack]; $x.__enum__ = utest.Assertation; return $x; };
+utest.Assertation.TimeoutError = function(missedAsyncs,stack) { var $x = ["TimeoutError",5,missedAsyncs,stack]; $x.__enum__ = utest.Assertation; return $x; };
+utest.Assertation.AsyncError = function(e,stack) { var $x = ["AsyncError",6,e,stack]; $x.__enum__ = utest.Assertation; return $x; };
+utest.Assertation.Warning = function(msg) { var $x = ["Warning",7,msg]; $x.__enum__ = utest.Assertation; return $x; };
 utest._Dispatcher = {};
 utest._Dispatcher.EventException = { __ename__ : ["utest","_Dispatcher","EventException"], __constructs__ : ["StopPropagation"] };
 utest._Dispatcher.EventException.StopPropagation = ["StopPropagation",0];
-utest._Dispatcher.EventException.StopPropagation.toString = $estr;
 utest._Dispatcher.EventException.StopPropagation.__enum__ = utest._Dispatcher.EventException;
 utest.Dispatcher = function() {
 	this.handlers = new Array();
@@ -2386,23 +2528,17 @@ utest.ui.common.FixtureResult.prototype = {
 };
 utest.ui.common.HeaderDisplayMode = { __ename__ : ["utest","ui","common","HeaderDisplayMode"], __constructs__ : ["AlwaysShowHeader","NeverShowHeader","ShowHeaderWithResults"] };
 utest.ui.common.HeaderDisplayMode.AlwaysShowHeader = ["AlwaysShowHeader",0];
-utest.ui.common.HeaderDisplayMode.AlwaysShowHeader.toString = $estr;
 utest.ui.common.HeaderDisplayMode.AlwaysShowHeader.__enum__ = utest.ui.common.HeaderDisplayMode;
 utest.ui.common.HeaderDisplayMode.NeverShowHeader = ["NeverShowHeader",1];
-utest.ui.common.HeaderDisplayMode.NeverShowHeader.toString = $estr;
 utest.ui.common.HeaderDisplayMode.NeverShowHeader.__enum__ = utest.ui.common.HeaderDisplayMode;
 utest.ui.common.HeaderDisplayMode.ShowHeaderWithResults = ["ShowHeaderWithResults",2];
-utest.ui.common.HeaderDisplayMode.ShowHeaderWithResults.toString = $estr;
 utest.ui.common.HeaderDisplayMode.ShowHeaderWithResults.__enum__ = utest.ui.common.HeaderDisplayMode;
 utest.ui.common.SuccessResultsDisplayMode = { __ename__ : ["utest","ui","common","SuccessResultsDisplayMode"], __constructs__ : ["AlwaysShowSuccessResults","NeverShowSuccessResults","ShowSuccessResultsWithNoErrors"] };
 utest.ui.common.SuccessResultsDisplayMode.AlwaysShowSuccessResults = ["AlwaysShowSuccessResults",0];
-utest.ui.common.SuccessResultsDisplayMode.AlwaysShowSuccessResults.toString = $estr;
 utest.ui.common.SuccessResultsDisplayMode.AlwaysShowSuccessResults.__enum__ = utest.ui.common.SuccessResultsDisplayMode;
 utest.ui.common.SuccessResultsDisplayMode.NeverShowSuccessResults = ["NeverShowSuccessResults",1];
-utest.ui.common.SuccessResultsDisplayMode.NeverShowSuccessResults.toString = $estr;
 utest.ui.common.SuccessResultsDisplayMode.NeverShowSuccessResults.__enum__ = utest.ui.common.SuccessResultsDisplayMode;
 utest.ui.common.SuccessResultsDisplayMode.ShowSuccessResultsWithNoErrors = ["ShowSuccessResultsWithNoErrors",2];
-utest.ui.common.SuccessResultsDisplayMode.ShowSuccessResultsWithNoErrors.toString = $estr;
 utest.ui.common.SuccessResultsDisplayMode.ShowSuccessResultsWithNoErrors.__enum__ = utest.ui.common.SuccessResultsDisplayMode;
 utest.ui.common.IReport = function() { };
 utest.ui.common.IReport.__name__ = ["utest","ui","common","IReport"];

@@ -186,68 +186,15 @@ class Promise2 {
 	}
 }
 
-class PromiseTuple2 {
-	public static function join<T1,T2,T3>(p1 : Promise<Tuple2<T1,T2>>, p2 : Promise<T3>) : Promise<Tuple3<T1,T2,T3>> {
-		return Deferred.create(function(resolve, reject) {
-			Promise2.join(p1, p2)
-				.thenEither(
-					function(t) resolve(t._0.toTuple3(t._1)),
-					function(e) reject(e));
-		});
-	}
-
-	public static function mapTuple<T1,T2,TOut>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Promise<TOut>) : Promise<TOut>
+class PromiseTuple6 {
+	public static function mapTuple<T1,T2,T3,T4,T5,T6,TOut>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Promise<TOut>) : Promise<TOut>
 		return promise.mapSuccess(function(t)
-			return success(t._0, t._1)
+			return success(t._0, t._1, t._2, t._3, t._4, t._5)
 		);
 
-	public static function thenTuple<T1,T2>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Void, ?failure : Error -> Void) : Void
+	public static function thenTuple<T1,T2,T3,T4,T5,T6>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Void, ?failure : Error -> Void) : Void
 		promise.thenEither(
-			function(t) success(t._0, t._1),
-			null == failure ? function(_) {} : failure
-		);
-}
-
-class PromiseTuple3 {
-	public static function join<T1,T2,T3,T4>(p1 : Promise<Tuple3<T1,T2,T3>>, p2 : Promise<T4>) : Promise<Tuple4<T1,T2,T3,T4>> {
-		return Deferred.create(function(resolve, reject) {
-			Promise2.join(p1, p2)
-				.thenEither(
-					function(t) resolve(t._0.toTuple4(t._1)),
-					function(e) reject(e));
-		});
-	}
-
-	public static function mapTuple<T1,T2,T3,TOut>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Promise<TOut>) : Promise<TOut>
-		return promise.mapSuccess(function(t)
-			return success(t._0, t._1, t._2)
-		);
-
-	public static function thenTuple<T1,T2,T3>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Void, ?failure : Error -> Void) : Void
-		promise.thenEither(
-			function(t) success(t._0, t._1, t._2),
-			null == failure ? function(_) {} : failure
-		);
-}
-
-class PromiseTuple4 {
-	public static function join<T1,T2,T3,T4,T5>(p1 : Promise<Tuple4<T1,T2,T3,T4>>, p2 : Promise<T5>) : Promise<Tuple5<T1,T2,T3,T4,T5>> {
-		return Deferred.create(function(resolve, reject) {
-			Promise2.join(p1, p2)
-				.thenEither(
-					function(t) resolve(t._0.toTuple5(t._1)),
-					function(e) reject(e));
-		});
-	}
-
-	public static function mapTuple<T1,T2,T3,T4,TOut>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Promise<TOut>) : Promise<TOut>
-		return promise.mapSuccess(function(t)
-			return success(t._0, t._1, t._2, t._3)
-		);
-
-	public static function thenTuple<T1,T2,T3,T4>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Void, ?failure : Error -> Void) : Void
-		promise.thenEither(
-			function(t) success(t._0, t._1, t._2, t._3),
+			function(t) success(t._0, t._1, t._2, t._3, t._4, t._5),
 			null == failure ? function(_) {} : failure
 		);
 }
@@ -274,15 +221,68 @@ class PromiseTuple5 {
 		);
 }
 
-class PromiseTuple56 {
-	public static function mapTuple<T1,T2,T3,T4,T5,T6,TOut>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Promise<TOut>) : Promise<TOut>
+class PromiseTuple4 {
+	public static function join<T1,T2,T3,T4,T5>(p1 : Promise<Tuple4<T1,T2,T3,T4>>, p2 : Promise<T5>) : Promise<Tuple5<T1,T2,T3,T4,T5>> {
+		return Deferred.create(function(resolve, reject) {
+			Promise2.join(p1, p2)
+				.thenEither(
+					function(t) resolve(t._0.toTuple5(t._1)),
+					function(e) reject(e));
+		});
+	}
+
+	public static function mapTuple<T1,T2,T3,T4,TOut>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Promise<TOut>) : Promise<TOut>
 		return promise.mapSuccess(function(t)
-			return success(t._0, t._1, t._2, t._3, t._4, t._5)
+			return success(t._0, t._1, t._2, t._3)
 		);
 
-	public static function thenTuple<T1,T2,T3,T4,T5,T6>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Void, ?failure : Error -> Void) : Void
+	public static function thenTuple<T1,T2,T3,T4>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Void, ?failure : Error -> Void) : Void
 		promise.thenEither(
-			function(t) success(t._0, t._1, t._2, t._3, t._4, t._5),
+			function(t) success(t._0, t._1, t._2, t._3),
+			null == failure ? function(_) {} : failure
+		);
+}
+
+class PromiseTuple3 {
+	public static function join<T1,T2,T3,T4>(p1 : Promise<Tuple3<T1,T2,T3>>, p2 : Promise<T4>) : Promise<Tuple4<T1,T2,T3,T4>> {
+		return Deferred.create(function(resolve, reject) {
+			Promise2.join(p1, p2)
+				.thenEither(
+					function(t) resolve(t._0.toTuple4(t._1)),
+					function(e) reject(e));
+		});
+	}
+
+	public static function mapTuple<T1,T2,T3,TOut>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Promise<TOut>) : Promise<TOut>
+		return promise.mapSuccess(function(t)
+			return success(t._0, t._1, t._2)
+		);
+
+	public static function thenTuple<T1,T2,T3>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Void, ?failure : Error -> Void) : Void
+		promise.thenEither(
+			function(t) success(t._0, t._1, t._2),
+			null == failure ? function(_) {} : failure
+		);
+}
+
+class PromiseTuple2 {
+	public static function join<T1,T2,T3>(p1 : Promise<Tuple2<T1,T2>>, p2 : Promise<T3>) : Promise<Tuple3<T1,T2,T3>> {
+		return Deferred.create(function(resolve, reject) {
+			Promise2.join(p1, p2)
+				.thenEither(
+					function(t) resolve(t._0.toTuple3(t._1)),
+					function(e) reject(e));
+		});
+	}
+
+	public static function mapTuple<T1,T2,TOut>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Promise<TOut>) : Promise<TOut>
+		return promise.mapSuccess(function(t)
+			return success(t._0, t._1)
+		);
+
+	public static function thenTuple<T1,T2>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Void, ?failure : Error -> Void) : Void
+		promise.thenEither(
+			function(t) success(t._0, t._1),
 			null == failure ? function(_) {} : failure
 		);
 }
