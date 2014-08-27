@@ -192,8 +192,8 @@ class PromiseTuple6 {
 			return success(t._0, t._1, t._2, t._3, t._4, t._5)
 		);
 
-	public static function thenTuple<T1,T2,T3,T4,T5,T6>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Void, ?failure : Error -> Void) : Void
-		promise.thenEither(
+	public static function thenTuple<T1,T2,T3,T4,T5,T6>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Void, ?failure : Error -> Void)
+		return promise.thenEither(
 			function(t) success(t._0, t._1, t._2, t._3, t._4, t._5),
 			null == failure ? function(_) {} : failure
 		);
@@ -214,8 +214,8 @@ class PromiseTuple5 {
 			return success(t._0, t._1, t._2, t._3, t._4)
 		);
 
-	public static function thenTuple<T1,T2,T3,T4,T5>(promise : Promise<Tuple5<T1,T2,T3,T4,T5>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> Void, ?failure : Error -> Void) : Void
-		promise.thenEither(
+	public static function thenTuple<T1,T2,T3,T4,T5>(promise : Promise<Tuple5<T1,T2,T3,T4,T5>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> Void, ?failure : Error -> Void)
+		return promise.thenEither(
 			function(t) success(t._0, t._1, t._2, t._3, t._4),
 			null == failure ? function(_) {} : failure
 		);
@@ -236,8 +236,8 @@ class PromiseTuple4 {
 			return success(t._0, t._1, t._2, t._3)
 		);
 
-	public static function thenTuple<T1,T2,T3,T4>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Void, ?failure : Error -> Void) : Void
-		promise.thenEither(
+	public static function thenTuple<T1,T2,T3,T4>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Void, ?failure : Error -> Void)
+		return promise.thenEither(
 			function(t) success(t._0, t._1, t._2, t._3),
 			null == failure ? function(_) {} : failure
 		);
@@ -258,8 +258,8 @@ class PromiseTuple3 {
 			return success(t._0, t._1, t._2)
 		);
 
-	public static function thenTuple<T1,T2,T3>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Void, ?failure : Error -> Void) : Void
-		promise.thenEither(
+	public static function thenTuple<T1,T2,T3>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Void, ?failure : Error -> Void)
+		return promise.thenEither(
 			function(t) success(t._0, t._1, t._2),
 			null == failure ? function(_) {} : failure
 		);
@@ -280,8 +280,8 @@ class PromiseTuple2 {
 			return success(t._0, t._1)
 		);
 
-	public static function thenTuple<T1,T2>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Void, ?failure : Error -> Void) : Void
-		promise.thenEither(
+	public static function thenTuple<T1,T2>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Void, ?failure : Error -> Void)
+		return promise.thenEither(
 			function(t) success(t._0, t._1),
 			null == failure ? function(_) {} : failure
 		);
