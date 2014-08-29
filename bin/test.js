@@ -888,6 +888,20 @@ thx.core.Options.equals = function(a,b,eq) {
 thx.core.Options.equalsValue = function(a,b,eq) {
 	return thx.core.Options.equals(a,thx.core.Options.toOption(b));
 };
+thx.core.Timer = function() { };
+thx.core.Timer.__name__ = ["thx","core","Timer"];
+thx.core.Timer.repeat = function(callback,delay) {
+	return setInterval(callback,delay);
+};
+thx.core.Timer.delay = function(callback,delay) {
+	return setTimeout(callback,delay);
+};
+thx.core.Timer.immediate = function(callback) {
+	return setImmediate(callback);
+};
+thx.core.Timer.clear = function(id) {
+	return clearTimeout(id);
+};
 thx.core._Tuple = {};
 thx.core._Tuple.Tuple0_Impl_ = function() { };
 thx.core._Tuple.Tuple0_Impl_.__name__ = ["thx","core","_Tuple","Tuple0_Impl_"];
@@ -1037,20 +1051,10 @@ thx.promise.Deferred = function() {
 	this.promise = new thx.promise.Promise();
 };
 thx.promise.Deferred.__name__ = ["thx","promise","Deferred"];
-thx.promise.Deferred.create = function(callback) {
-	var deferred = new thx.promise.Deferred();
-	callback($bind(deferred,deferred.resolve),$bind(deferred,deferred.reject));
-	return deferred.promise;
-};
-thx.promise.Deferred.createFulfill = function(callback) {
-	var deferred = new thx.promise.Deferred();
-	callback($bind(deferred,deferred.fulfill));
-	return deferred.promise;
-};
 thx.promise.Deferred.prototype = {
 	promise: null
 	,rejectWith: function(error) {
-		return this.fulfill(thx.promise.PromiseState.Failure(thx.core.Error.fromDynamic(error,{ fileName : "Deferred.hx", lineNumber : 26, className : "thx.promise.Deferred", methodName : "rejectWith"})));
+		return this.fulfill(thx.promise.PromiseState.Failure(thx.core.Error.fromDynamic(error,{ fileName : "Deferred.hx", lineNumber : 13, className : "thx.promise.Deferred", methodName : "rejectWith"})));
 	}
 	,reject: function(error) {
 		return this.fulfill(thx.promise.PromiseState.Failure(error));
@@ -1059,7 +1063,7 @@ thx.promise.Deferred.prototype = {
 		return this.fulfill(thx.promise.PromiseState.Success(value));
 	}
 	,fulfill: function(result) {
-		return this.promise.setStateDelayed(result);
+		return this.promise.setState(result);
 	}
 	,toString: function() {
 		return "Deferred";
@@ -1071,8 +1075,18 @@ thx.promise.Promise = function() {
 	this.state = haxe.ds.Option.None;
 };
 thx.promise.Promise.__name__ = ["thx","promise","Promise"];
+thx.promise.Promise.create = function(callback) {
+	var deferred = new thx.promise.Deferred();
+	callback($bind(deferred,deferred.resolve),$bind(deferred,deferred.reject));
+	return deferred.promise;
+};
+thx.promise.Promise.createFulfill = function(callback) {
+	var deferred = new thx.promise.Deferred();
+	callback($bind(deferred,deferred.fulfill));
+	return deferred.promise;
+};
 thx.promise.Promise.all = function(arr) {
-	return thx.promise.Deferred.create(function(resolve,reject) {
+	return thx.promise.Promise.create(function(resolve,reject) {
 		var results = [];
 		var counter = 0;
 		var hasError = false;
@@ -1091,12 +1105,12 @@ thx.promise.Promise.all = function(arr) {
 	});
 };
 thx.promise.Promise.value = function(v) {
-	return thx.promise.Deferred.create(function(resolve,_) {
+	return thx.promise.Promise.create(function(resolve,_) {
 		resolve(v);
 	});
 };
 thx.promise.Promise.reject = function(err) {
-	return thx.promise.Deferred.create(function(_,reject) {
+	return thx.promise.Promise.create(function(_,reject) {
 		reject(err);
 	});
 };
@@ -1133,7 +1147,7 @@ thx.promise.Promise.prototype = {
 	}
 	,map: function(handler) {
 		var _g = this;
-		return thx.promise.Deferred.createFulfill(function(fulfill) {
+		return thx.promise.Promise.createFulfill(function(fulfill) {
 			_g.then(function(result) {
 				handler(result).then(fulfill);
 			});
@@ -1228,18 +1242,11 @@ thx.promise.Promise.prototype = {
 				break;
 			case 0:
 				var r = _g[2];
-				throw new thx.core.Error("promise was already " + Std.string(r) + ", can't apply new state " + Std.string(newstate),null,{ fileName : "Promise.hx", lineNumber : 108, className : "thx.promise.Promise", methodName : "setState"});
+				throw new thx.core.Error("promise was already " + Std.string(r) + ", can't apply new state " + Std.string(newstate),null,{ fileName : "Promise.hx", lineNumber : 120, className : "thx.promise.Promise", methodName : "setState"});
 				break;
 			}
 		}
 		this.update();
-		return this;
-	}
-	,setStateDelayed: function(newstate) {
-		var _g = this;
-		haxe.Timer.delay(function() {
-			_g.setState(newstate);
-		},0);
 		return this;
 	}
 	,update: function() {
@@ -1263,15 +1270,24 @@ thx.promise.Promises.__name__ = ["thx","promise","Promises"];
 thx.promise.Promises.log = function(promise,prefix) {
 	if(prefix == null) prefix = "";
 	return promise.thenEither(function(r) {
-		haxe.Log.trace("" + prefix + " SUCCESS: " + Std.string(r),{ fileName : "Promise.hx", lineNumber : 147, className : "thx.promise.Promises", methodName : "log"});
+		haxe.Log.trace("" + prefix + " SUCCESS: " + Std.string(r),{ fileName : "Promise.hx", lineNumber : 140, className : "thx.promise.Promises", methodName : "log"});
 	},function(e) {
-		haxe.Log.trace("" + prefix + " ERROR: " + e.toString(),{ fileName : "Promise.hx", lineNumber : 148, className : "thx.promise.Promises", methodName : "log"});
+		haxe.Log.trace("" + prefix + " ERROR: " + e.toString(),{ fileName : "Promise.hx", lineNumber : 141, className : "thx.promise.Promises", methodName : "log"});
 	});
 };
-thx.promise.Promise2 = function() { };
-thx.promise.Promise2.__name__ = ["thx","promise","Promise2"];
-thx.promise.Promise2.join = function(p1,p2) {
-	return thx.promise.Deferred.create(function(resolve,reject) {
+thx.promise.Promises.delay = function(p,interval) {
+	return p.map(function(r) {
+		return thx.promise.Promise.createFulfill(function(fulfill) {
+			thx.core.Timer.delay((function(f,a1) {
+				return function() {
+					return f(a1);
+				};
+			})(fulfill,r),interval);
+		});
+	});
+};
+thx.promise.Promises.join = function(p1,p2) {
+	return thx.promise.Promise.create(function(resolve,reject) {
 		var hasError = false;
 		var counter = 0;
 		var v1 = null;
@@ -1307,7 +1323,7 @@ thx.promise.PromiseTuple6.mapTuple = function(promise,success) {
 	});
 };
 thx.promise.PromiseTuple6.thenTuple = function(promise,success,failure) {
-	promise.thenEither(function(t) {
+	return promise.thenEither(function(t) {
 		success(t._0,t._1,t._2,t._3,t._4,t._5);
 	},null == failure?function(_) {
 	}:failure);
@@ -1315,8 +1331,8 @@ thx.promise.PromiseTuple6.thenTuple = function(promise,success,failure) {
 thx.promise.PromiseTuple5 = function() { };
 thx.promise.PromiseTuple5.__name__ = ["thx","promise","PromiseTuple5"];
 thx.promise.PromiseTuple5.join = function(p1,p2) {
-	return thx.promise.Deferred.create(function(resolve,reject) {
-		thx.promise.Promise2.join(p1,p2).thenEither(function(t) {
+	return thx.promise.Promise.create(function(resolve,reject) {
+		thx.promise.Promises.join(p1,p2).thenEither(function(t) {
 			resolve((function($this) {
 				var $r;
 				var this1 = t._0;
@@ -1334,7 +1350,7 @@ thx.promise.PromiseTuple5.mapTuple = function(promise,success) {
 	});
 };
 thx.promise.PromiseTuple5.thenTuple = function(promise,success,failure) {
-	promise.thenEither(function(t) {
+	return promise.thenEither(function(t) {
 		success(t._0,t._1,t._2,t._3,t._4);
 	},null == failure?function(_) {
 	}:failure);
@@ -1342,8 +1358,8 @@ thx.promise.PromiseTuple5.thenTuple = function(promise,success,failure) {
 thx.promise.PromiseTuple4 = function() { };
 thx.promise.PromiseTuple4.__name__ = ["thx","promise","PromiseTuple4"];
 thx.promise.PromiseTuple4.join = function(p1,p2) {
-	return thx.promise.Deferred.create(function(resolve,reject) {
-		thx.promise.Promise2.join(p1,p2).thenEither(function(t) {
+	return thx.promise.Promise.create(function(resolve,reject) {
+		thx.promise.Promises.join(p1,p2).thenEither(function(t) {
 			resolve((function($this) {
 				var $r;
 				var this1 = t._0;
@@ -1361,7 +1377,7 @@ thx.promise.PromiseTuple4.mapTuple = function(promise,success) {
 	});
 };
 thx.promise.PromiseTuple4.thenTuple = function(promise,success,failure) {
-	promise.thenEither(function(t) {
+	return promise.thenEither(function(t) {
 		success(t._0,t._1,t._2,t._3);
 	},null == failure?function(_) {
 	}:failure);
@@ -1369,8 +1385,8 @@ thx.promise.PromiseTuple4.thenTuple = function(promise,success,failure) {
 thx.promise.PromiseTuple3 = function() { };
 thx.promise.PromiseTuple3.__name__ = ["thx","promise","PromiseTuple3"];
 thx.promise.PromiseTuple3.join = function(p1,p2) {
-	return thx.promise.Deferred.create(function(resolve,reject) {
-		thx.promise.Promise2.join(p1,p2).thenEither(function(t) {
+	return thx.promise.Promise.create(function(resolve,reject) {
+		thx.promise.Promises.join(p1,p2).thenEither(function(t) {
 			resolve((function($this) {
 				var $r;
 				var this1 = t._0;
@@ -1388,7 +1404,7 @@ thx.promise.PromiseTuple3.mapTuple = function(promise,success) {
 	});
 };
 thx.promise.PromiseTuple3.thenTuple = function(promise,success,failure) {
-	promise.thenEither(function(t) {
+	return promise.thenEither(function(t) {
 		success(t._0,t._1,t._2);
 	},null == failure?function(_) {
 	}:failure);
@@ -1396,8 +1412,8 @@ thx.promise.PromiseTuple3.thenTuple = function(promise,success,failure) {
 thx.promise.PromiseTuple2 = function() { };
 thx.promise.PromiseTuple2.__name__ = ["thx","promise","PromiseTuple2"];
 thx.promise.PromiseTuple2.join = function(p1,p2) {
-	return thx.promise.Deferred.create(function(resolve,reject) {
-		thx.promise.Promise2.join(p1,p2).thenEither(function(t) {
+	return thx.promise.Promise.create(function(resolve,reject) {
+		thx.promise.Promises.join(p1,p2).thenEither(function(t) {
 			resolve((function($this) {
 				var $r;
 				var this1 = t._0;
@@ -1415,7 +1431,7 @@ thx.promise.PromiseTuple2.mapTuple = function(promise,success) {
 	});
 };
 thx.promise.PromiseTuple2.thenTuple = function(promise,success,failure) {
-	promise.thenEither(function(t) {
+	return promise.thenEither(function(t) {
 		success(t._0,t._1);
 	},null == failure?function(_) {
 	}:failure);
@@ -1506,7 +1522,7 @@ thx.promise.TestPromise.prototype = {
 	}
 	,testJoinSuccess: function() {
 		var done = utest.Assert.createAsync();
-		thx.promise.Promise2.join(thx.promise.Promise.value(1),thx.promise.Promise.value(2)).success(function(t) {
+		thx.promise.Promises.join(thx.promise.Promise.value(1),thx.promise.Promise.value(2)).success(function(t) {
 			utest.Assert.equals(1,t._0,null,{ fileName : "TestPromise.hx", lineNumber : 109, className : "thx.promise.TestPromise", methodName : "testJoinSuccess"});
 			utest.Assert.equals(2,t._1,null,{ fileName : "TestPromise.hx", lineNumber : 110, className : "thx.promise.TestPromise", methodName : "testJoinSuccess"});
 			done();
@@ -1515,7 +1531,7 @@ thx.promise.TestPromise.prototype = {
 	,testJoinFailure: function() {
 		var done = utest.Assert.createAsync();
 		var err = new thx.core.Error("error",null,{ fileName : "TestPromise.hx", lineNumber : 117, className : "thx.promise.TestPromise", methodName : "testJoinFailure"});
-		thx.promise.Promise2.join(thx.promise.Promise.value(1),thx.promise.Promise.reject(err)).failure(function(e) {
+		thx.promise.Promises.join(thx.promise.Promise.value(1),thx.promise.Promise.reject(err)).failure(function(e) {
 			utest.Assert.equals(err,e,null,{ fileName : "TestPromise.hx", lineNumber : 121, className : "thx.promise.TestPromise", methodName : "testJoinFailure"});
 			done();
 		}).success(function(t) {
@@ -1563,6 +1579,18 @@ thx.promise.TestPromise.prototype = {
 			utest.Assert.equals("a",b,null,{ fileName : "TestPromise.hx", lineNumber : 181, className : "thx.promise.TestPromise", methodName : "testThenTuple3"});
 			utest.Assert.equals(0.2,c,null,{ fileName : "TestPromise.hx", lineNumber : 182, className : "thx.promise.TestPromise", methodName : "testThenTuple3"});
 			done();
+		});
+	}
+	,testDelay: function() {
+		var done = utest.Assert.createAsync();
+		var start = new Date().getTime();
+		thx.promise.Promises.delay(thx.promise.Promise.value("a"),50).success(function(v) {
+			utest.Assert.equals("a",v,null,{ fileName : "TestPromise.hx", lineNumber : 193, className : "thx.promise.TestPromise", methodName : "testDelay"});
+			haxe.Log.trace(new Date().getTime() - start,{ fileName : "TestPromise.hx", lineNumber : 194, className : "thx.promise.TestPromise", methodName : "testDelay"});
+			utest.Assert.isTrue(new Date().getTime() - start >= 40.,null,{ fileName : "TestPromise.hx", lineNumber : 195, className : "thx.promise.TestPromise", methodName : "testDelay"});
+			done();
+		}).failure(function(e) {
+			utest.Assert.fail(e.toString(),{ fileName : "TestPromise.hx", lineNumber : 199, className : "thx.promise.TestPromise", methodName : "testDelay"});
 		});
 	}
 	,__class__: thx.promise.TestPromise
@@ -3324,6 +3352,10 @@ if(Array.prototype.map == null) Array.prototype.map = function(f) {
 		a[i] = f(this[i]);
 	}
 	return a;
+};
+var scope = ("undefined" !== typeof window && window) || ("undefined" !== typeof global && global) || this;
+if(!scope.setImmediate) scope.setImmediate = function(callback) {
+	scope.setTimeout(callback,0);
 };
 thx.core.Ints.pattern_parse = new EReg("^[+-]?(\\d+|0x[0-9A-F]+)$","i");
 utest.TestHandler.POLLING_TIME = 10;
