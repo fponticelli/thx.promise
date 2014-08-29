@@ -16,7 +16,7 @@ class Promise<T> {
     return deferred.promise;
   }
 
-  public static function createFulfill<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T> {
+  public static function fulfilled<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T> {
     var deferred = new Deferred<T>();
     callback(deferred.fulfill);
     return deferred.promise;
@@ -28,7 +28,7 @@ class Promise<T> {
           counter  = 0,
           hasError = false;
       arr.mapi(function(p, i) {
-        p.thenEither(function(value) {
+        p.either(function(value) {
           if(hasError) return;
           results[i] = value;
           counter++;
@@ -45,7 +45,7 @@ class Promise<T> {
   public static function value<T>(v : T) : Promise<T>
     return Promise.create(function(resolve, _) resolve(v));
 
-  public static function reject<T>(err : Error) : Promise<T>
+  public static function error<T>(err : Error) : Promise<T>
     return Promise.create(function(_, reject) reject(err));
 
   var handlers : Array<PromiseValue<T> -> Void>;
@@ -61,7 +61,7 @@ class Promise<T> {
     return this;
   }
 
-  public function thenEither(success : T -> Void, failure : Error -> Void) {
+  public function either(success : T -> Void, failure : Error -> Void) {
     then(function(r) switch r {
       case Success(value): success(value);
       case Failure(error): failure(error);
@@ -70,13 +70,18 @@ class Promise<T> {
   }
 
   public function success(success : T -> Void)
-    return thenEither(success, function(_){});
+    return either(success, function(_){});
 
   public function failure(failure : Error -> Void)
-    return thenEither(function(_){}, failure);
+    return either(function(_){}, failure);
+
+  public function throwFailure()
+    return failure(function(err) {
+      throw err;
+    });
 
   public function map<TOut>(handler : PromiseValue<T> -> Promise<TOut>)
-    return Promise.createFulfill(function(fulfill)
+    return Promise.fulfilled(function(fulfill)
       then(function(result) handler(result).then(fulfill))
     );
 
@@ -87,7 +92,7 @@ class Promise<T> {
       });
 
   public function mapSuccess<TOut>(success : T -> Promise<TOut>)
-    return mapEither(success, function(err) return Promise.reject(err));
+    return mapEither(success, function(err) return Promise.error(err));
 
   public function mapFailure(failure : Error -> Promise<T>)
     return mapEither(function(value : T) return Promise.value(value), failure);
@@ -139,7 +144,7 @@ class Promise<T> {
 
 class Promises {
   public static function log<T>(promise : Promise<T>, ?prefix : String = '')
-    return promise.thenEither(
+    return promise.either(
       function(r) trace('$prefix SUCCESS: $r'),
       function(e) trace('$prefix ERROR: ${e.toString()}')
     );
@@ -147,7 +152,7 @@ class Promises {
   public static function delay<T>(p : Promise<T>, ?interval : Int) : Promise<T>
     return p.map(
       function(r)
-        return Promise.createFulfill(
+        return Promise.fulfilled(
           null == interval ?
             function(fulfill) thx.core.Timer.immediate(fulfill.bind(r)) :
             function(fulfill) thx.core.Timer.delay(fulfill.bind(r), interval)
@@ -173,14 +178,14 @@ class Promises {
         reject(error);
       }
 
-      p1.thenEither(function(v) {
+      p1.either(function(v) {
         if(hasError) return;
         counter++;
         v1 = v;
         complete();
       }, handleError);
 
-      p2.thenEither(function(v) {
+      p2.either(function(v) {
         if(hasError) return;
         counter++;
         v2 = v;
@@ -196,8 +201,8 @@ class PromiseTuple6 {
       return success(t._0, t._1, t._2, t._3, t._4, t._5)
     );
 
-  public static function thenTuple<T1,T2,T3,T4,T5,T6>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Void, ?failure : Error -> Void)
-    return promise.thenEither(
+  public static function tuple<T1,T2,T3,T4,T5,T6>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Void, ?failure : Error -> Void)
+    return promise.either(
       function(t) success(t._0, t._1, t._2, t._3, t._4, t._5),
       null == failure ? function(_) {} : failure
     );
@@ -207,7 +212,7 @@ class PromiseTuple5 {
   public static function join<T1,T2,T3,T4,T5,T6>(p1 : Promise<Tuple5<T1,T2,T3,T4,T5>>, p2 : Promise<T6>) : Promise<Tuple6<T1,T2,T3,T4,T5,T6>> {
     return Promise.create(function(resolve, reject) {
       Promises.join(p1, p2)
-        .thenEither(
+        .either(
           function(t) resolve(t._0.toTuple6(t._1)),
           function(e) reject(e));
     });
@@ -218,8 +223,8 @@ class PromiseTuple5 {
       return success(t._0, t._1, t._2, t._3, t._4)
     );
 
-  public static function thenTuple<T1,T2,T3,T4,T5>(promise : Promise<Tuple5<T1,T2,T3,T4,T5>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> Void, ?failure : Error -> Void)
-    return promise.thenEither(
+  public static function tuple<T1,T2,T3,T4,T5>(promise : Promise<Tuple5<T1,T2,T3,T4,T5>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> Void, ?failure : Error -> Void)
+    return promise.either(
       function(t) success(t._0, t._1, t._2, t._3, t._4),
       null == failure ? function(_) {} : failure
     );
@@ -229,7 +234,7 @@ class PromiseTuple4 {
   public static function join<T1,T2,T3,T4,T5>(p1 : Promise<Tuple4<T1,T2,T3,T4>>, p2 : Promise<T5>) : Promise<Tuple5<T1,T2,T3,T4,T5>> {
     return Promise.create(function(resolve, reject) {
       Promises.join(p1, p2)
-        .thenEither(
+        .either(
           function(t) resolve(t._0.toTuple5(t._1)),
           function(e) reject(e));
     });
@@ -240,8 +245,8 @@ class PromiseTuple4 {
       return success(t._0, t._1, t._2, t._3)
     );
 
-  public static function thenTuple<T1,T2,T3,T4>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Void, ?failure : Error -> Void)
-    return promise.thenEither(
+  public static function tuple<T1,T2,T3,T4>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Void, ?failure : Error -> Void)
+    return promise.either(
       function(t) success(t._0, t._1, t._2, t._3),
       null == failure ? function(_) {} : failure
     );
@@ -251,7 +256,7 @@ class PromiseTuple3 {
   public static function join<T1,T2,T3,T4>(p1 : Promise<Tuple3<T1,T2,T3>>, p2 : Promise<T4>) : Promise<Tuple4<T1,T2,T3,T4>> {
     return Promise.create(function(resolve, reject) {
       Promises.join(p1, p2)
-        .thenEither(
+        .either(
           function(t) resolve(t._0.toTuple4(t._1)),
           function(e) reject(e));
     });
@@ -262,8 +267,8 @@ class PromiseTuple3 {
       return success(t._0, t._1, t._2)
     );
 
-  public static function thenTuple<T1,T2,T3>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Void, ?failure : Error -> Void)
-    return promise.thenEither(
+  public static function tuple<T1,T2,T3>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Void, ?failure : Error -> Void)
+    return promise.either(
       function(t) success(t._0, t._1, t._2),
       null == failure ? function(_) {} : failure
     );
@@ -273,7 +278,7 @@ class PromiseTuple2 {
   public static function join<T1,T2,T3>(p1 : Promise<Tuple2<T1,T2>>, p2 : Promise<T3>) : Promise<Tuple3<T1,T2,T3>> {
     return Promise.create(function(resolve, reject) {
       Promises.join(p1, p2)
-        .thenEither(
+        .either(
           function(t) resolve(t._0.toTuple3(t._1)),
           function(e) reject(e));
     });
@@ -284,14 +289,19 @@ class PromiseTuple2 {
       return success(t._0, t._1)
     );
 
-  public static function thenTuple<T1,T2>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Void, ?failure : Error -> Void)
-    return promise.thenEither(
+  public static function tuple<T1,T2>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Void, ?failure : Error -> Void)
+    return promise.either(
       function(t) success(t._0, t._1),
       null == failure ? function(_) {} : failure
     );
 }
 
-enum PromiseValue<T> {
-  Failure(err : Error);
-  Success(value : T);
+class PromiseNil {
+  public static function join<T2>(p1 : Promise<Nil>, p2 : Promise<T2>) : Promise<T2>
+    return Promise.create(function(resolve, reject) {
+      Promises.join(p1, p2)
+        .either(
+          function(t) resolve(t._1),
+          function(e) reject(e));
+    });
 }

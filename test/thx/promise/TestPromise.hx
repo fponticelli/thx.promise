@@ -33,7 +33,7 @@ class TestPromise {
     var done = Assert.createAsync(),
         error = new Error("Nooooo!");
 
-    Promise.reject(error)
+    Promise.error(error)
       .failure(function(e) {
         Assert.equals(error, e);
         done();
@@ -44,7 +44,7 @@ class TestPromise {
     var done = Assert.createAsync(),
         error = new Error("Nooooo!");
 
-    Promise.reject(error)
+    Promise.error(error)
       .delay()
       .failure(function(e) {
         Assert.equals(error, e);
@@ -65,7 +65,7 @@ class TestPromise {
   public function testMapSuccessWithFailure() {
     var done = Assert.createAsync(),
         err = new Error("error");
-    Promise.reject(err).mapSuccess(function(v) {
+    Promise.error(err).mapSuccess(function(v) {
       Assert.fail("should never touch this");
       return Promise.value(v * 2);
     }).failure(function(e) {
@@ -90,7 +90,7 @@ class TestPromise {
         err  = new Error("error");
     Promise.all([
       Promise.value(1),
-      Promise.reject(err)
+      Promise.error(err)
     ])
     .success(function(arr) {
       Assert.fail("should never happen");
@@ -116,7 +116,7 @@ class TestPromise {
     var done = Assert.createAsync(),
         err  = new Error("error");
     Promise.value(1)
-      .join(Promise.reject(err))
+      .join(Promise.error(err))
       .failure(function(e) {
         Assert.equals(err, e);
         done();
@@ -141,7 +141,7 @@ class TestPromise {
   public function testMapTupleFailure() {
     var done = Assert.createAsync(),
         err  = new Error("error");
-    Promise.reject(err)
+    Promise.error(err)
       .mapTuple(function(a, b) {
         return Promise.value(a/b);
       })
@@ -155,8 +155,8 @@ class TestPromise {
     var done = Assert.createAsync(),
         err  = new Error("error");
     Promise.all([
-      Promise.reject(err),
-      Promise.reject(err)
+      Promise.error(err),
+      Promise.error(err)
     ])
     .mapSuccess(function(v) {
       Assert.fail("should never happen");
@@ -172,11 +172,11 @@ class TestPromise {
     });
   }
 
-  public function testThenTuple3() {
+  public function testTuple3() {
     var done = Assert.createAsync(),
         err  = new Error("error");
     Promise.value(new Tuple3(1,"a", 0.2))
-    .thenTuple(function(a, b, c) {
+    .tuple(function(a, b, c) {
       Assert.equals(1, a);
       Assert.equals("a", b);
       Assert.equals(0.2, c);
