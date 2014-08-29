@@ -3,17 +3,20 @@ package thx.promise;
 import haxe.ds.Option;
 import thx.core.Error;
 import thx.core.Tuple;
+import thx.core.Nil;
 using thx.core.Options;
 using thx.core.Arrays;
 
 class Promise<T> {
+  public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
+
   public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T> {
     var deferred = new Deferred<T>();
     callback(deferred.resolve, deferred.reject);
     return deferred.promise;
   }
 
-  public static function createFulfill<T>(callback : (PromiseState<T> -> Void) -> Void) : Promise<T> {
+  public static function createFulfill<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T> {
     var deferred = new Deferred<T>();
     callback(deferred.fulfill);
     return deferred.promise;
@@ -45,14 +48,14 @@ class Promise<T> {
   public static function reject<T>(err : Error) : Promise<T>
     return Promise.create(function(_, reject) reject(err));
 
-  var handlers : Array<PromiseState<T> -> Void>;
-  var state : Option<PromiseState<T>>;
+  var handlers : Array<PromiseValue<T> -> Void>;
+  var state : Option<PromiseValue<T>>;
   private function new() {
     handlers = [];
     state = None;
   }
 
-  public function then(handler : PromiseState<T> -> Void) {
+  public function then(handler : PromiseValue<T> -> Void) {
     handlers.push(handler);
     update();
     return this;
@@ -72,7 +75,7 @@ class Promise<T> {
   public function failure(failure : Error -> Void)
     return thenEither(function(_){}, failure);
 
-  public function map<TOut>(handler : PromiseState<T> -> Promise<TOut>)
+  public function map<TOut>(handler : PromiseValue<T> -> Promise<TOut>)
     return Promise.createFulfill(function(fulfill)
       then(function(result) handler(result).then(fulfill))
     );
@@ -112,7 +115,7 @@ class Promise<T> {
 
   public function toString() return 'Promise';
 
-  function setState(newstate : PromiseState<T>) {
+  function setState(newstate : PromiseValue<T>) {
     switch state {
       case None:
         state = Some(newstate);
@@ -141,11 +144,13 @@ class Promises {
       function(e) trace('$prefix ERROR: ${e.toString()}')
     );
 
-  public static function delay<T>(p : Promise<T>, interval : Int) : Promise<T>
+  public static function delay<T>(p : Promise<T>, ?interval : Int) : Promise<T>
     return p.map(
       function(r)
         return Promise.createFulfill(
-          function(fulfill) thx.core.Timer.delay(fulfill.bind(r), interval)
+          null == interval ?
+            function(fulfill) thx.core.Timer.immediate(fulfill.bind(r)) :
+            function(fulfill) thx.core.Timer.delay(fulfill.bind(r), interval)
         )
     );
 
@@ -286,7 +291,7 @@ class PromiseTuple2 {
     );
 }
 
-enum PromiseState<T> {
+enum PromiseValue<T> {
   Failure(err : Error);
   Success(value : T);
 }

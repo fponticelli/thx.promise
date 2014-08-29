@@ -15,7 +15,7 @@ class Deferred<T> {
     return fulfill(Failure(error));
   public function resolve(value : T)
     return fulfill(Success(value));
-  public function fulfill(result : PromiseState<T>)
+  public function fulfill(result : PromiseValue<T>)
     return promise.setState(result);
 
   public function toString() return 'Deferred';

@@ -11,45 +11,45 @@ class TestPromise {
   public function new() {}
 
   public function testResolveBefore() {
-    var done = Assert.createAsync(),
-      deferred = new Deferred();
-    deferred.resolve(1);
-    deferred.promise.success(function(v) {
-      Assert.equals(1, v);
-      done();
-    });
+    var done = Assert.createAsync();
+    Promise.value(1)
+      .success(function(v) {
+        Assert.equals(1, v);
+        done();
+      });
   }
 
   public function testResolveAfter() {
-    var done = Assert.createAsync(),
-      deferred = new Deferred();
-    deferred.promise.success(function(v) {
-      Assert.equals(1, v);
-      done();
-    });
-    deferred.resolve(1);
+    var done = Assert.createAsync();
+    Promise.value(1)
+      .delay()
+      .success(function(v) {
+        Assert.equals(1, v);
+        done();
+      });
   }
 
   public function testRejectBefore() {
     var done = Assert.createAsync(),
-      deferred = new Deferred(),
-      error = new Error("Nooooo!");
-    deferred.reject(error);
-    deferred.promise.failure(function(e) {
-      Assert.equals(error, e);
-      done();
-    });
+        error = new Error("Nooooo!");
+
+    Promise.reject(error)
+      .failure(function(e) {
+        Assert.equals(error, e);
+        done();
+      });
   }
 
   public function testRejectAfter() {
     var done = Assert.createAsync(),
-      deferred = new Deferred(),
-      error = new Error("Nooooo!");
-    deferred.promise.failure(function(e) {
-      Assert.equals(error, e);
-      done();
-    });
-    deferred.reject(error);
+        error = new Error("Nooooo!");
+
+    Promise.reject(error)
+      .delay()
+      .failure(function(e) {
+        Assert.equals(error, e);
+        done();
+      });
   }
 
   public function testMapSuccessWithValue() {
