@@ -191,7 +191,6 @@ class TestPromise {
       .delay(50)
       .success(function(v) {
         Assert.equals("a", v);
-        trace(Date.now().getTime() - start);
         Assert.isTrue(Date.now().getTime() - start >= 50 * 0.8);
         done();
       })
