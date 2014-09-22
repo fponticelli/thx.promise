@@ -149,6 +149,7 @@ class Promises {
       function(e) trace('$prefix ERROR: ${e.toString()}')
     );
 
+#if !macro
   public static function delay<T>(p : Promise<T>, ?interval : Int) : Promise<T>
     return p.map(
       function(r)
@@ -158,7 +159,7 @@ class Promises {
             function(fulfill) thx.core.Timer.delay(fulfill.bind(r), interval)
         )
     );
-
+#end
   public static function join<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>> {
     return Promise.create(function(resolve, reject) {
       var hasError = false,
@@ -213,7 +214,7 @@ class PromiseTuple5 {
     return Promise.create(function(resolve, reject) {
       Promises.join(p1, p2)
         .either(
-          function(t) resolve(t._0.toTuple6(t._1)),
+          function(t) resolve(t._0.with(t._1)),
           function(e) reject(e));
     });
   }
@@ -235,7 +236,7 @@ class PromiseTuple4 {
     return Promise.create(function(resolve, reject) {
       Promises.join(p1, p2)
         .either(
-          function(t) resolve(t._0.toTuple5(t._1)),
+          function(t) resolve(t._0.with(t._1)),
           function(e) reject(e));
     });
   }
@@ -257,7 +258,7 @@ class PromiseTuple3 {
     return Promise.create(function(resolve, reject) {
       Promises.join(p1, p2)
         .either(
-          function(t) resolve(t._0.toTuple4(t._1)),
+          function(t) resolve(t._0.with(t._1)),
           function(e) reject(e));
     });
   }
@@ -279,7 +280,7 @@ class PromiseTuple2 {
     return Promise.create(function(resolve, reject) {
       Promises.join(p1, p2)
         .either(
-          function(t) resolve(t._0.toTuple3(t._1)),
+          function(t) resolve(t._0.with(t._1)),
           function(e) reject(e));
     });
   }
