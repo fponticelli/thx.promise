@@ -306,3 +306,6 @@ class PromiseNil {
           function(e) reject(e));
     });
 }
+
+// TODO: flatten
+// TODOL flatMap
