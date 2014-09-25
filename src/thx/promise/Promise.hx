@@ -10,18 +10,6 @@ using thx.core.Arrays;
 class Promise<T> {
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
-  public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T> {
-    var deferred = new Deferred<T>();
-    callback(deferred.resolve, deferred.reject);
-    return deferred.promise;
-  }
-
-  public static function fulfilled<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T> {
-    var deferred = new Deferred<T>();
-    callback(deferred.fulfill);
-    return deferred.promise;
-  }
-
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>>
     return Promise.create(function(resolve, reject) {
       var results  = [],
@@ -42,11 +30,23 @@ class Promise<T> {
       });
     });
 
-  public static function value<T>(v : T) : Promise<T>
-    return Promise.create(function(resolve, _) resolve(v));
+  public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T> {
+    var deferred = new Deferred<T>();
+    callback(deferred.resolve, deferred.reject);
+    return deferred.promise;
+  }
+
+  public static function createFulfill<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T> {
+    var deferred = new Deferred<T>();
+    callback(deferred.fulfill);
+    return deferred.promise;
+  }
 
   public static function error<T>(err : Error) : Promise<T>
     return Promise.create(function(_, reject) reject(err));
+
+  public static function value<T>(v : T) : Promise<T>
+    return Promise.create(function(resolve, _) resolve(v));
 
   var handlers : Array<PromiseValue<T> -> Void>;
   var state : Option<PromiseValue<T>>;
@@ -55,11 +55,8 @@ class Promise<T> {
     state = None;
   }
 
-  public function then(handler : PromiseValue<T> -> Void) {
-    handlers.push(handler);
-    update();
-    return this;
-  }
+  public function always(handler : Void -> Void)
+    then(function(_) handler());
 
   public function either(success : T -> Void, failure : Error -> Void) {
     then(function(r) switch r {
@@ -69,45 +66,8 @@ class Promise<T> {
     return this;
   }
 
-  public function success(success : T -> Void)
-    return either(success, function(_){});
-
-  public function failure(failure : Error -> Void)
-    return either(function(_){}, failure);
-
-  public function throwFailure()
-    return failure(function(err) {
-      throw err;
-    });
-
-  public function map<TOut>(handler : PromiseValue<T> -> Promise<TOut>)
-    return Promise.fulfilled(function(fulfill)
-      then(function(result) handler(result).then(fulfill))
-    );
-
-  public function mapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>)
-    return map(function(result) return switch result {
-        case Success(value): success(value);
-        case Failure(error): failure(error);
-      });
-
-  public function mapSuccess<TOut>(success : T -> Promise<TOut>)
-    return mapEither(success, function(err) return Promise.error(err));
-
-  public function mapFailure(failure : Error -> Promise<T>)
-    return mapEither(function(value : T) return Promise.value(value), failure);
-
-  public function always(handler : Void -> Void)
-    then(function(_) handler());
-
-  public function mapAlways<TOut>(handler : Void -> Promise<TOut>)
-    map(function(_) return handler());
-
-  public function isResolved()
-    return switch state {
-      case None, Some(Failure(_)): false;
-      case _: true;
-    };
+  public function isComplete()
+    return switch state { case None: false; case Some(_): true; };
 
   public function isFailure()
     return switch state {
@@ -115,8 +75,48 @@ class Promise<T> {
       case _: true;
     };
 
-  public function isComplete()
-    return switch state { case None: false; case Some(_): true; };
+  public function isResolved()
+    return switch state {
+      case None, Some(Failure(_)): false;
+      case _: true;
+    };
+
+  public function failure(failure : Error -> Void)
+    return either(function(_){}, failure);
+
+  public function map<TOut>(handler : PromiseValue<T> -> Promise<TOut>)
+    return Promise.createFulfill(function(fulfill)
+      then(function(result) handler(result).then(fulfill))
+    );
+
+  public function mapAlways<TOut>(handler : Void -> Promise<TOut>)
+    map(function(_) return handler());
+
+  public function mapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>)
+    return map(function(result) return switch result {
+        case Success(value): success(value);
+        case Failure(error): failure(error);
+      });
+
+  public function mapFailure(failure : Error -> Promise<T>)
+    return mapEither(function(value : T) return Promise.value(value), failure);
+
+  public function mapSuccess<TOut>(success : T -> Promise<TOut>)
+    return mapEither(success, function(err) return Promise.error(err));
+
+  public function success(success : T -> Void)
+    return either(success, function(_){});
+
+  public function then(handler : PromiseValue<T> -> Void) {
+    handlers.push(handler);
+    update();
+    return this;
+  }
+
+  public function throwFailure()
+    return failure(function(err) {
+      throw err;
+    });
 
   public function toString() return 'Promise';
 
@@ -143,23 +143,18 @@ class Promise<T> {
 }
 
 class Promises {
-  public static function log<T>(promise : Promise<T>, ?prefix : String = '')
-    return promise.either(
-      function(r) trace('$prefix SUCCESS: $r'),
-      function(e) trace('$prefix ERROR: ${e.toString()}')
-    );
-
 #if !macro
   public static function delay<T>(p : Promise<T>, ?interval : Int) : Promise<T>
     return p.map(
       function(r)
-        return Promise.fulfilled(
+        return Promise.createFulfill(
           null == interval ?
             function(fulfill) thx.core.Timer.immediate(fulfill.bind(r)) :
             function(fulfill) thx.core.Timer.delay(fulfill.bind(r), interval)
         )
     );
 #end
+
   public static function join<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>> {
     return Promise.create(function(resolve, reject) {
       var hasError = false,
@@ -194,6 +189,12 @@ class Promises {
       }, handleError);
     });
   }
+
+  public static function log<T>(promise : Promise<T>, ?prefix : String = '')
+    return promise.either(
+      function(r) trace('$prefix SUCCESS: $r'),
+      function(e) trace('$prefix ERROR: ${e.toString()}')
+    );
 }
 
 class PromiseTuple6 {
