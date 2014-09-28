@@ -143,7 +143,7 @@ class Promise<T> {
 }
 
 class Promises {
-#if !macro
+#if (js || flash)
   public static function delay<T>(p : Promise<T>, ?interval : Int) : Promise<T>
     return p.map(
       function(r)

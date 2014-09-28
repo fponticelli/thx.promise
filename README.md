@@ -1,5 +1,7 @@
 # thx.promise
 
+[![Build Status](https://travis-ci.org/fponticelli/thx.promise.svg)](https://travis-ci.org/fponticelli/thx.promise)
+
 Simple reinterpretation of the Promise pattern for Haxe.
 
 ## intro

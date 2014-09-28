@@ -18,7 +18,7 @@ class TestPromise {
         done();
       });
   }
-
+#if (js || swf)
   public function testResolveAfter() {
     var done = Assert.createAsync();
     Promise.value(1)
@@ -29,23 +29,24 @@ class TestPromise {
       });
   }
 
-  public function testRejectBefore() {
-    var done = Assert.createAsync(),
-        error = new Error("Nooooo!");
-
-    Promise.error(error)
-      .failure(function(e) {
-        Assert.equals(error, e);
-        done();
-      });
-  }
-
   public function testRejectAfter() {
     var done = Assert.createAsync(),
         error = new Error("Nooooo!");
 
     Promise.error(error)
       .delay()
+      .failure(function(e) {
+        Assert.equals(error, e);
+        done();
+      });
+  }
+#end
+
+  public function testRejectBefore() {
+    var done = Assert.createAsync(),
+        error = new Error("Nooooo!");
+
+    Promise.error(error)
       .failure(function(e) {
         Assert.equals(error, e);
         done();
@@ -183,7 +184,7 @@ class TestPromise {
       done();
     });
   }
-
+#if (js || swf)
   public function testDelay() {
   	var done = Assert.createAsync(),
         start = Date.now().getTime();
@@ -198,4 +199,5 @@ class TestPromise {
         Assert.fail(e.toString());
       });
   }
+#end
 }
