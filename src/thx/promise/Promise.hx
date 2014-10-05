@@ -143,15 +143,16 @@ class Promise<T> {
 }
 
 class Promises {
-#if (js || flash)
+#if (js || flash || java)
   public static function delay<T>(p : Promise<T>, ?interval : Int) : Promise<T>
     return p.map(
-      function(r)
+      function(r) {
         return Promise.createFulfill(
           null == interval ?
             function(fulfill) thx.core.Timer.immediate(fulfill.bind(r)) :
             function(fulfill) thx.core.Timer.delay(fulfill.bind(r), interval)
-        )
+        );
+      }
     );
 #end
 

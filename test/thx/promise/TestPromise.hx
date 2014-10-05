@@ -18,7 +18,8 @@ class TestPromise {
         done();
       });
   }
-#if (js || swf)
+
+#if (js || swf || java)
   public function testResolveAfter() {
     var done = Assert.createAsync();
     Promise.value(1)
@@ -38,6 +39,21 @@ class TestPromise {
       .failure(function(e) {
         Assert.equals(error, e);
         done();
+      });
+  }
+
+  public function testDelay() {
+    var done = Assert.createAsync(),
+        start = Date.now().getTime();
+    Promise.value("a")
+      .delay(50)
+      .success(function(v) {
+        Assert.equals("a", v);
+        Assert.isTrue(Date.now().getTime() - start >= 50 * 0.8);
+        done();
+      })
+      .failure(function(e) {
+        Assert.fail(e.toString());
       });
   }
 #end
@@ -184,20 +200,4 @@ class TestPromise {
       done();
     });
   }
-#if (js || swf)
-  public function testDelay() {
-  	var done = Assert.createAsync(),
-        start = Date.now().getTime();
-    Promise.value("a")
-      .delay(50)
-      .success(function(v) {
-        Assert.equals("a", v);
-        Assert.isTrue(Date.now().getTime() - start >= 50 * 0.8);
-        done();
-      })
-      .failure(function(e) {
-        Assert.fail(e.toString());
-      });
-  }
-#end
 }
