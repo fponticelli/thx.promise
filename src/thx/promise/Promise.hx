@@ -13,6 +13,10 @@ typedef PromiseValue<T> = Result<T, Error>;
 
 @:forward(hasValue, map, mapAsync, mapFuture, state, then)
 abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to Future<Result<T, Error>> {
+  public static function futureToPromise<T>(future : Future<T>) : Promise<T>
+    return future.map(function(v) return (Right(v) : PromiseValue<T>));
+
+
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>>
@@ -83,20 +87,26 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   public function failure(failure : Error -> Void) : Promise<T>
     return either(function(_){}, failure);
 
-  public function mapAlways<TOut>(handler : Void -> Promise<TOut>) : Promise<TOut>
+  inline public function mapAlways<TOut>(handler : Void -> TOut) : Promise<TOut>
+    return this.map(function(_) return (Right(handler()) : PromiseValue<TOut>));
+
+  inline public function mapAlwaysPromise<TOut>(handler : Void -> Promise<TOut>) : Promise<TOut>
     return this.mapFuture(function(_) return handler());
 
-  public function mapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>) : Promise<TOut>
+  inline public function mapAlwaysCallback<TOut>(handler : (TOut -> Void) -> Void) : Promise<TOut>
+    return futureToPromise(this.mapAsync(function(_, cb) return handler(cb)));
+
+  public function mapEitherPromise<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>) : Promise<TOut>
     return this.mapFuture(function(result) return switch result {
         case Right(value): success(value);
         case Left(error): failure(error);
       });
 
-  public function mapFailure(failure : Error -> Promise<T>) : Promise<T>
-    return mapEither(function(value : T) return Promise.value(value), failure);
+  public function mapFailurePromise(failure : Error -> Promise<T>) : Promise<T>
+    return mapEitherPromise(function(value : T) return Promise.value(value), failure);
 
-  public function mapSuccess<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
-    return mapEither(success, function(err) return Promise.error(err));
+  public function mapSuccessPromise<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
+    return mapEitherPromise(success, function(err) return Promise.error(err));
 
   public function success(success : T -> Void) : Promise<T>
     return either(success, function(_){});
@@ -153,8 +163,8 @@ class Promises {
 }
 
 class PromiseTuple6 {
-  public static function mapTuple<T1,T2,T3,T4,T5,T6,TOut>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Promise<TOut>) : Promise<TOut>
-    return promise.mapSuccess(function(t)
+  public static function mapTuplePromise<T1,T2,T3,T4,T5,T6,TOut>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Promise<TOut>) : Promise<TOut>
+    return promise.mapSuccessPromise(function(t)
       return success(t._0, t._1, t._2, t._3, t._4, t._5)
     );
 
@@ -175,8 +185,8 @@ class PromiseTuple5 {
     });
   }
 
-  public static function mapTuple<T1,T2,T3,T4,T5,TOut>(promise : Promise<Tuple5<T1,T2,T3,T4,T5>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> Promise<TOut>) : Promise<TOut>
-    return promise.mapSuccess(function(t)
+  public static function mapTuplePromise<T1,T2,T3,T4,T5,TOut>(promise : Promise<Tuple5<T1,T2,T3,T4,T5>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> Promise<TOut>) : Promise<TOut>
+    return promise.mapSuccessPromise(function(t)
       return success(t._0, t._1, t._2, t._3, t._4)
     );
 
@@ -197,8 +207,8 @@ class PromiseTuple4 {
     });
   }
 
-  public static function mapTuple<T1,T2,T3,T4,TOut>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Promise<TOut>) : Promise<TOut>
-    return promise.mapSuccess(function(t)
+  public static function mapTuplePromise<T1,T2,T3,T4,TOut>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Promise<TOut>) : Promise<TOut>
+    return promise.mapSuccessPromise(function(t)
       return success(t._0, t._1, t._2, t._3)
     );
 
@@ -219,8 +229,8 @@ class PromiseTuple3 {
     });
   }
 
-  public static function mapTuple<T1,T2,T3,TOut>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Promise<TOut>) : Promise<TOut>
-    return promise.mapSuccess(function(t)
+  public static function mapTuplePromise<T1,T2,T3,TOut>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Promise<TOut>) : Promise<TOut>
+    return promise.mapSuccessPromise(function(t)
       return success(t._0, t._1, t._2)
     );
 
@@ -241,8 +251,8 @@ class PromiseTuple2 {
     });
   }
 
-  public static function mapTuple<T1,T2,TOut>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Promise<TOut>) : Promise<TOut>
-    return promise.mapSuccess(function(t)
+  public static function mapTuplePromise<T1,T2,TOut>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Promise<TOut>) : Promise<TOut>
+    return promise.mapSuccessPromise(function(t)
       return success(t._0, t._1)
     );
 

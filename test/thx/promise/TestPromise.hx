@@ -70,7 +70,7 @@ class TestPromise {
 
   public function testMapSuccessWithValue() {
     var done = Assert.createAsync();
-    Promise.value(1).mapSuccess(function(v) {
+    Promise.value(1).mapSuccessPromise(function(v) {
       return Promise.value(v * 2);
     }).success(function(v) {
       Assert.equals(2, v);
@@ -81,7 +81,7 @@ class TestPromise {
   public function testMapSuccessWithFailure() {
     var done = Assert.createAsync(),
         err = new Error("error");
-    Promise.error(err).mapSuccess(function(v) {
+    Promise.error(err).mapSuccessPromise(function(v) {
       Assert.fail("should never touch this");
       return Promise.value(v * 2);
     }).failure(function(e) {
@@ -145,7 +145,7 @@ class TestPromise {
   public function testMapTupleSuccess() {
     var done = Assert.createAsync();
     Promise.value(new Tuple2(1, 2))
-      .mapTuple(function(a, b) {
+      .mapTuplePromise(function(a, b) {
         return Promise.value(a/b);
       })
       .success(function(v) {
@@ -158,7 +158,7 @@ class TestPromise {
     var done = Assert.createAsync(),
         err  = new Error("error");
     Promise.error(err)
-      .mapTuple(function(a, b) {
+      .mapTuplePromise(function(a, b) {
         return Promise.value(a/b);
       })
       .failure(function(e) {
@@ -174,11 +174,11 @@ class TestPromise {
       Promise.error(err),
       Promise.error(err)
     ])
-    .mapSuccess(function(v) {
+    .mapSuccessPromise(function(v) {
       Assert.fail("should never happen");
       return Promise.value(new Tuple2(1, 2));
     })
-    .mapTuple(function(a, b) {
+    .mapTuplePromise(function(a, b) {
       Assert.fail("should never happen");
       return Promise.value(a / b);
     })
