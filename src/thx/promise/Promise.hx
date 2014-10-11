@@ -16,7 +16,6 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   public static function futureToPromise<T>(future : Future<T>) : Promise<T>
     return future.map(function(v) return (Right(v) : PromiseValue<T>));
 
-
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>>
@@ -87,34 +86,40 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   public function failure(failure : Error -> Void) : Promise<T>
     return either(function(_){}, failure);
 
-  inline public function mapAlways<TOut>(handler : Void -> TOut) : Promise<TOut>
-    return this.map(function(_) return (Right(handler()) : PromiseValue<TOut>));
+  inline public function mapAlways<TOut>(handler : Void -> TOut) : Future<TOut>
+    return this.map(function(_) return handler());
 
-  inline public function mapAlwaysPromise<TOut>(handler : Void -> Promise<TOut>) : Promise<TOut>
+  inline public function mapAlwaysAsync<TOut>(handler : (TOut -> Void) -> Void) : Future<TOut>
+    return this.mapAsync(function(_, cb) return handler(cb));
+
+  inline public function mapAlwaysFuture<TOut>(handler : Void -> Future<TOut>) : Future<TOut>
     return this.mapFuture(function(_) return handler());
 
-  inline public function mapAlwaysCallback<TOut>(handler : (TOut -> Void) -> Void) : Promise<TOut>
-    return futureToPromise(this.mapAsync(function(_, cb) return handler(cb)));
-
-  public function mapEitherPromise<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>) : Promise<TOut>
-    return this.mapFuture(function(result) return switch result {
+  public function mapEither<TOut>(success : T -> TOut, failure : Error -> TOut) : Future<TOut>
+    return this.map(function(result)
+      return switch result {
         case Right(value): success(value);
         case Left(error): failure(error);
       });
 
-  public function mapFailurePromise(failure : Error -> Promise<T>) : Promise<T>
-    return mapEitherPromise(function(value : T) return Promise.value(value), failure);
+  public function mapEitherFuture<TOut>(success : T -> Future<TOut>, failure : Error -> Future<TOut>) : Future<TOut>
+    return this.mapFuture(function(result)
+      return switch result {
+        case Right(value): success(value);
+        case Left(error): failure(error);
+      });
+
+  public function mapFailureFuture(failure : Error -> Future<T>) : Future<T>
+    return mapEitherFuture(function(value : T) return Future.value(value), failure);
 
   public function mapSuccessPromise<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
-    return mapEitherPromise(success, function(err) return Promise.error(err));
+    return mapEitherFuture(success, function(err) return Promise.error(err));
 
   public function success(success : T -> Void) : Promise<T>
     return either(success, function(_){});
 
   public function throwFailure() : Promise<T>
-    return failure(function(err) {
-      throw err;
-    });
+    return failure(function(err) throw err);
 
   public function toString() return 'Promise';
 }
