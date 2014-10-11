@@ -92,9 +92,10 @@ class Future<T> {
     switch state {
       case None:
       case Some(result): {
-        var handler;
-        while(null != (handler = handlers.shift()))
-          handler(result);
+        var index = -1;
+        while(++index < handlers.length)
+          handlers[index](result);
+        handlers = [];
       }
     };
 }
