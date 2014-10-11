@@ -28,11 +28,10 @@ class Future<T> {
     return future;
   }
 
-  public static function flatMap<T>(future : Future<Future<T>>) : Future<T> {
-    var nfuture = new Future<T>();
-    future.then(function(f) f.then(nfuture.setState));
-    return nfuture;
-  }
+  public static function flatMap<T>(future : Future<Future<T>>) : Future<T>
+    return Future.create(function(callback) {
+      future.then(function(future) future.then(callback));
+    });
 
   public static function value<T>(v : T)
     return create(function(callback) callback(v));
