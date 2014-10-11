@@ -1,6 +1,5 @@
 package thx.promise;
 
-import thx.promise.Deferred;
 using thx.promise.Promise;
 import thx.core.Error;
 import utest.Assert;

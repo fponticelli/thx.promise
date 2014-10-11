@@ -11,7 +11,8 @@ import thx.core.Either;
 
 typedef PromiseValue<T> = Result<T, Error>;
 
-class Promise<T> {
+@:forward(map, mapAsync, mapFuture, hasValue, state, then)
+abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to Future<Result<T, Error>> {
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>>
@@ -34,17 +35,16 @@ class Promise<T> {
       });
     });
 
-  public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T> {
-    var deferred = new Deferred<T>();
-    callback(deferred.resolve, deferred.reject);
-    return deferred.promise;
-  }
+  public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
+    return Future.create(function(cb : PromiseValue<T> -> Void) {
+      callback(
+        function(value : T) cb(Right(value)),
+        function(error : Error) cb(Left(error))
+      );
+    });
 
-  public static function createFulfill<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T> {
-    var deferred = new Deferred<T>();
-    callback(deferred.fulfill);
-    return deferred.promise;
-  }
+  public static function createFulfill<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T>
+    return Future.create(callback);
 
   public static function error<T>(err : Error) : Promise<T>
     return Promise.create(function(_, reject) reject(err));
@@ -52,78 +52,80 @@ class Promise<T> {
   public static function value<T>(v : T) : Promise<T>
     return Promise.create(function(resolve, _) resolve(v));
 
+/*
   var handlers : Array<PromiseValue<T> -> Void>;
   var state : Option<PromiseValue<T>>;
   private function new() {
     handlers = [];
     state = None;
   }
-
+*/
   public function always(handler : Void -> Void)
-    then(function(_) handler());
+    this.then(function(_) handler());
 
   public function either(success : T -> Void, failure : Error -> Void) {
-    then(function(r) switch r {
+    this.then(function(r) switch r {
       case Right(value): success(value);
       case Left(error): failure(error);
     });
     return this;
   }
-
+// TODO remove
   public function isComplete()
-    return switch state { case None: false; case Some(_): true; };
+    return switch this.state { case None: false; case Some(_): true; };
 
   public function isFailure()
-    return switch state {
+    return switch this.state {
       case None, Some(Right(_)): false;
       case _: true;
     };
 
   public function isResolved()
-    return switch state {
+    return switch this.state {
       case None, Some(Left(_)): false;
       case _: true;
     };
 
-  public function failure(failure : Error -> Void)
+  public function failure(failure : Error -> Void) : Promise<T>
     return either(function(_){}, failure);
 
+/*
   public function map<TOut>(handler : PromiseValue<T> -> Promise<TOut>)
     return Promise.createFulfill(function(fulfill)
       then(function(result) handler(result).then(fulfill))
     );
+*/
+  public function mapAlways<TOut>(handler : Void -> Promise<TOut>) : Promise<TOut>
+    return this.mapFuture(function(_) return handler());
 
-  public function mapAlways<TOut>(handler : Void -> Promise<TOut>)
-    map(function(_) return handler());
-
-  public function mapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>)
-    return map(function(result) return switch result {
+  public function mapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>) : Promise<TOut>
+    return this.mapFuture(function(result) return switch result {
         case Right(value): success(value);
         case Left(error): failure(error);
       });
 
-  public function mapFailure(failure : Error -> Promise<T>)
+  public function mapFailure(failure : Error -> Promise<T>) : Promise<T>
     return mapEither(function(value : T) return Promise.value(value), failure);
 
-  public function mapSuccess<TOut>(success : T -> Promise<TOut>)
+  public function mapSuccess<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
     return mapEither(success, function(err) return Promise.error(err));
 
-  public function success(success : T -> Void)
+  public function success(success : T -> Void) : Promise<T>
     return either(success, function(_){});
-
+/*
   public function then(handler : PromiseValue<T> -> Void) {
     handlers.push(handler);
     update();
     return this;
   }
-
-  public function throwFailure()
+*/
+  public function throwFailure() : Promise<T>
     return failure(function(err) {
       throw err;
     });
 
   public function toString() return 'Promise';
-
+/*
   function setState(newstate : PromiseValue<T>) {
     switch state {
       case None:
@@ -144,12 +146,13 @@ class Promise<T> {
           handler(result);
       }
     };
+*/
 }
 
 class Promises {
 #if (js || flash || java)
   public static function delay<T>(p : Promise<T>, ?interval : Int) : Promise<T>
-    return p.map(
+    return p.mapFuture(
       function(r) {
         return Promise.createFulfill(
           null == interval ?
