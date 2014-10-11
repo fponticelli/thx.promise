@@ -28,7 +28,7 @@ class Future<T> {
     return future;
   }
 
-  public static function flatMap<T>(future : Future<Future<T>>) : Future<T>
+  inline public static function flatMap<T>(future : Future<Future<T>>) : Future<T>
     return Future.create(function(callback) {
       future.then(function(future) future.then(callback));
     });
