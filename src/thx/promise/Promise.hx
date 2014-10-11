@@ -11,7 +11,7 @@ import thx.core.Either;
 
 typedef PromiseValue<T> = Result<T, Error>;
 
-@:forward(map, mapAsync, mapFuture, hasValue, state, then)
+@:forward(hasValue, map, mapAsync, mapFuture, state, then)
 abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to Future<Result<T, Error>> {
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
@@ -63,6 +63,11 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     return this;
   }
 
+#if(js || flash || java)
+  inline public function delay(?delayms : Int) : Promise<T>
+    return this.delay(delayms);
+#end
+
   public function isFailure()
     return switch this.state {
       case None, Some(Right(_)): false;
@@ -105,25 +110,12 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
 }
 
 class Promises {
-#if (js || flash || java)
-  public static function delay<T>(p : Promise<T>, ?interval : Int) : Promise<T>
-    return p.mapFuture(
-      function(r) {
-        return Promise.createFulfill(
-          null == interval ?
-            function(fulfill) thx.core.Timer.immediate(fulfill.bind(r)) :
-            function(fulfill) thx.core.Timer.delay(fulfill.bind(r), interval)
-        );
-      }
-    );
-#end
-
   public static function join<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>> {
     return Promise.create(function(resolve, reject) {
       var hasError = false,
-        counter = 0,
-        v1 : Null<T1> = null,
-        v2 : Null<T2> = null;
+          counter = 0,
+          v1 : Null<T1> = null,
+          v2 : Null<T2> = null;
 
       function complete() {
         if(counter < 2)
@@ -270,6 +262,3 @@ class PromiseNil {
           function(e) reject(e));
     });
 }
-
-// TODO: flatten
-// TODOL flatMap

@@ -76,4 +76,14 @@ class TestFuture {
         done();
       });
   }
+
+  public function testJoin() {
+    var done = Assert.createAsync();
+    Timer
+      .delayValue(1, 20).join(Timer.delayValue(2, 10))
+      .then(function(p) {
+        Assert.same({_0 : 1, _1 : 2}, p);
+        done();
+      });
+  }
 }

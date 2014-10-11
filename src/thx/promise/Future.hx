@@ -3,7 +3,9 @@ package thx.promise;
 import haxe.ds.Option;
 using thx.core.Arrays;
 import thx.core.Error;
+import thx.core.Nil;
 using thx.core.Options;
+import thx.core.Tuple;
 
 class Future<T> {
   public static function all<T>(arr : Array<Future<T>>) : Future<Array<T>>
@@ -26,14 +28,14 @@ class Future<T> {
     return future;
   }
 
-  public static function value<T>(v : T)
-    return create(function(callback) callback(v));
-
   public static function flatMap<T>(future : Future<Future<T>>) : Future<T> {
     var nfuture = new Future<T>();
     future.then(function(f) f.then(nfuture.setState));
     return nfuture;
   }
+
+  public static function value<T>(v : T)
+    return create(function(callback) callback(v));
 
   var handlers : Array<T -> Void>;
   public var state(default, null) : Option<T>;
@@ -41,6 +43,15 @@ class Future<T> {
     handlers = [];
     state = None;
   }
+
+#if (js || flash || java)
+  inline public function delay(?delayms : Int) {
+    if(null == delayms)
+      return mapFuture(function(value) return Timer.immediateValue(value));
+    else
+      return mapFuture(function(value) return Timer.delayValue(value, delayms));
+  }
+#end
 
   inline public function hasValue()
     return state.toBool();
@@ -87,4 +98,115 @@ class Future<T> {
           handler(result);
       }
     };
+}
+
+class Futures {
+  public static function join<T1,T2>(p1 : Future<T1>, p2 : Future<T2>) : Future<Tuple2<T1,T2>> {
+    return Future.create(function(callback) {
+      var counter = 0,
+          v1 : Null<T1> = null,
+          v2 : Null<T2> = null;
+
+      function complete() {
+        if(counter < 2)
+          return;
+        callback(new Tuple2(v1, v2));
+      }
+
+      p1.then(function(v) {
+        counter++;
+        v1 = v;
+        complete();
+      });
+
+      p2.then(function(v) {
+        counter++;
+        v2 = v;
+        complete();
+      });
+    });
+  }
+
+  public static function log<T>(future : Future<T>, ?prefix : String = '')
+    return future.then(
+      function(r) trace('$prefix VALUE: $r')
+    );
+}
+
+class FutureTuple6 {
+  public static function mapTuple<T1,T2,T3,T4,T5,T6,TOut>(future : Future<Tuple6<T1,T2,T3,T4,T5,T6>>, callback : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> TOut) : Future<TOut>
+    return future.map(function(t)
+      return callback(t._0, t._1, t._2, t._3, t._4, t._5)
+    );
+
+  public static function tuple<T1,T2,T3,T4,T5,T6>(future : Future<Tuple6<T1,T2,T3,T4,T5,T6>>, callback : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Void)
+    return future.then(function(t) callback(t._0, t._1, t._2, t._3, t._4, t._5));
+}
+
+class FutureTuple5 {
+  public static function join<T1,T2,T3,T4,T5,T6>(p1 : Future<Tuple5<T1,T2,T3,T4,T5>>, p2 : Future<T6>) : Future<Tuple6<T1,T2,T3,T4,T5,T6>>
+    return Future.create(function(callback)
+      Futures.join(p1, p2)
+        .then(
+          function(t) callback(t._0.with(t._1))));
+
+  public static function mapTuple<T1,T2,T3,T4,T5,TOut>(future : Future<Tuple5<T1,T2,T3,T4,T5>>, callback : T1 -> T2 -> T3 -> T4 -> T5 -> TOut) : Future<TOut>
+    return future.map(function(t)
+      return callback(t._0, t._1, t._2, t._3, t._4)
+    );
+
+  public static function tuple<T1,T2,T3,T4,T5>(future : Future<Tuple5<T1,T2,T3,T4,T5>>, callback : T1 -> T2 -> T3 -> T4 -> T5 -> Void)
+    return future.then(function(t) callback(t._0, t._1, t._2, t._3, t._4));
+}
+
+class FutureTuple4 {
+  public static function join<T1,T2,T3,T4,T5>(p1 : Future<Tuple4<T1,T2,T3,T4>>, p2 : Future<T5>) : Future<Tuple5<T1,T2,T3,T4,T5>>
+    return Future.create(function(callback)
+      Futures.join(p1, p2)
+        .then(
+          function(t) callback(t._0.with(t._1))));
+
+  public static function mapTuple<T1,T2,T3,T4,TOut>(future : Future<Tuple4<T1,T2,T3,T4>>, callback : T1 -> T2 -> T3 -> T4 -> TOut) : Future<TOut>
+    return future.map(function(t)
+      return callback(t._0, t._1, t._2, t._3)
+    );
+
+  public static function tuple<T1,T2,T3,T4>(future : Future<Tuple4<T1,T2,T3,T4>>, callback : T1 -> T2 -> T3 -> T4 -> Void)
+    return future.then(function(t) callback(t._0, t._1, t._2, t._3));
+}
+
+class FutureTuple3 {
+  public static function join<T1,T2,T3,T4>(p1 : Future<Tuple3<T1,T2,T3>>, p2 : Future<T4>) : Future<Tuple4<T1,T2,T3,T4>>
+    return Future.create(function(callback)
+      Futures.join(p1, p2)
+        .then(
+          function(t) callback(t._0.with(t._1))));
+
+  public static function mapTuple<T1,T2,T3,TOut>(future : Future<Tuple3<T1,T2,T3>>, callback : T1 -> T2 -> T3 -> TOut) : Future<TOut>
+    return future.map(function(t)
+      return callback(t._0, t._1, t._2)
+    );
+
+  public static function tuple<T1,T2,T3>(future : Future<Tuple3<T1,T2,T3>>, callback : T1 -> T2 -> T3 -> Void)
+    return future.then(function(t) callback(t._0, t._1, t._2));
+}
+
+class FutureTuple2 {
+  public static function join<T1,T2,T3>(p1 : Future<Tuple2<T1,T2>>, p2 : Future<T3>) : Future<Tuple3<T1,T2,T3>>
+    return Future.create(function(callback)
+      Futures.join(p1, p2)
+        .then(function(t) callback(t._0.with(t._1))));
+
+  public static function mapTuple<T1,T2,TOut>(future : Future<Tuple2<T1,T2>>, callback : T1 -> T2 -> TOut) : Future<TOut>
+    return future.map(function(t) return callback(t._0, t._1));
+
+  public static function tuple<T1,T2>(future : Future<Tuple2<T1,T2>>, callback : T1 -> T2 -> Void)
+    return future.then(function(t) callback(t._0, t._1));
+}
+
+class FutureNil {
+  public static function join<T2>(p1 : Future<Nil>, p2 : Future<T2>) : Future<T2>
+    return Future.create(function(callback)
+      Futures.join(p1, p2)
+        .then(function(t) callback(t._1)));
 }
