@@ -28,6 +28,7 @@ class Future<T> {
     return future;
   }
 
+  // inline makes Java behave .... groovy
   inline public static function flatMap<T>(future : Future<Future<T>>) : Future<T>
     return Future.create(function(callback) {
       future.then(function(future) future.then(callback));
