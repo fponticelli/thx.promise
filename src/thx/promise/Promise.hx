@@ -52,14 +52,6 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   public static function value<T>(v : T) : Promise<T>
     return Promise.create(function(resolve, _) resolve(v));
 
-/*
-  var handlers : Array<PromiseValue<T> -> Void>;
-  var state : Option<PromiseValue<T>>;
-  private function new() {
-    handlers = [];
-    state = None;
-  }
-*/
   public function always(handler : Void -> Void)
     this.then(function(_) handler());
 
@@ -70,9 +62,6 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     });
     return this;
   }
-// TODO remove
-  public function isComplete()
-    return switch this.state { case None: false; case Some(_): true; };
 
   public function isFailure()
     return switch this.state {
@@ -89,12 +78,6 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   public function failure(failure : Error -> Void) : Promise<T>
     return either(function(_){}, failure);
 
-/*
-  public function map<TOut>(handler : PromiseValue<T> -> Promise<TOut>)
-    return Promise.createFulfill(function(fulfill)
-      then(function(result) handler(result).then(fulfill))
-    );
-*/
   public function mapAlways<TOut>(handler : Void -> Promise<TOut>) : Promise<TOut>
     return this.mapFuture(function(_) return handler());
 
@@ -112,41 +95,13 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
 
   public function success(success : T -> Void) : Promise<T>
     return either(success, function(_){});
-/*
-  public function then(handler : PromiseValue<T> -> Void) {
-    handlers.push(handler);
-    update();
-    return this;
-  }
-*/
+
   public function throwFailure() : Promise<T>
     return failure(function(err) {
       throw err;
     });
 
   public function toString() return 'Promise';
-/*
-  function setState(newstate : PromiseValue<T>) {
-    switch state {
-      case None:
-        state = Some(newstate);
-      case Some(r):
-        throw new Error('promise was already $r, can\'t apply new state $newstate');
-    }
-    update();
-    return this;
-  }
-
-  function update()
-    switch state {
-      case None:
-      case Some(result): {
-        var handler;
-        while(null != (handler = handlers.shift()))
-          handler(result);
-      }
-    };
-*/
 }
 
 class Promises {
