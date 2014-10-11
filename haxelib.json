@@ -4,9 +4,9 @@
   "license": "MIT",
   "classPath": "src",
   "tags": ["thx", "promise", "async", "cross"],
-  "description": "Library for lightweight promises (not inspired by Promise/A+)",
-  "releasenote": "fixed runtime envirnoment",
-  "version": "0.2.1",
+  "description": "Library for lightweight promises",
+  "releasenote": "API change",
+  "version": "0.3.0",
   "contributors": ["fponticelli"],
   "dependencies": {
     "thx.core": ""
