@@ -2,7 +2,6 @@ package thx.promise;
 
 using thx.core.Nil;
 using thx.promise.Future;
-using thx.promise.Timer;
 import utest.Assert;
 
 @:access(thx.promise.Future)
@@ -13,6 +12,7 @@ class TestFuture {
     Future.value(1).then(function(v) Assert.equals(1, v));
   }
 
+#if (js || java || flash)
   public function testThenAfter() {
     var done = Assert.createAsync();
     Timer.delayValue("x", 10)
@@ -41,6 +41,7 @@ class TestFuture {
       });
     Assert.isFalse(future.hasValue());
   }
+#end
 
   public function testMap() {
     Future.value(1)
@@ -66,6 +67,7 @@ class TestFuture {
       .then(Assert.equals.bind('1'));
   }
 
+#if (js || java || flash)
   public function testAll() {
     var done = Assert.createAsync();
     Future.all([
@@ -86,4 +88,5 @@ class TestFuture {
         done();
       });
   }
+#end
 }

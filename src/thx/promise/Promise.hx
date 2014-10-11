@@ -42,7 +42,8 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     return Future.create(function(cb : PromiseValue<T> -> Void) {
       callback(
         function(value : T) cb(Right(value)),
-        function(error : Error) cb(Left(error))
+        // cast required by C#
+        function(error : Error) cb(cast Left(error))
       );
     });
 
@@ -66,8 +67,8 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     return this;
   }
 
-#if(js || flash || java)
-  inline public function delay(?delayms : Int) : Promise<T>
+#if (js || flash || java)
+  public function delay(?delayms : Int) : Promise<T>
     return this.delay(delayms);
 #end
 
