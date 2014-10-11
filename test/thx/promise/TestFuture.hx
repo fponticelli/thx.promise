@@ -46,13 +46,13 @@ class TestFuture {
 
   public function testMap() {
     Future.value(1)
-      .map(function(i) return '' + i)
+      .map(function(i) return '$i')
       .then(Assert.equals.bind('1'));
   }
 
   public function testMapAsync() {
     Future.value(1)
-      .mapAsync(function(v, callback) callback(''+v))
+      .mapAsync(function(v, callback) callback('$v'))
       .then(Assert.equals.bind('1'));
   }
 
@@ -64,7 +64,7 @@ class TestFuture {
 
   public function testMapFuture() {
     Future.value(1)
-      .mapFuture(function(v) return Future.value(v))
+      .mapFuture(function(v) return Future.value('$v'))
       .then(Assert.equals.bind('1'));
   }
 
