@@ -41,9 +41,9 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
     return Future.create(function(cb : PromiseValue<T> -> Void) {
       callback(
-        function(value : T) cb(Right(value)),
+        function(value : T) cb((Right(value) : Result<T, Error>)),
         // cast required by C#
-        function(error : Error) cb(cast Left(error))
+        function(error : Error) cb((Left(error) : Result<T, Error>))
       );
     });
 

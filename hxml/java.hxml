@@ -6,3 +6,4 @@
 -java bin/java
 -main TestAll
 -D thx-promise
+-debug
