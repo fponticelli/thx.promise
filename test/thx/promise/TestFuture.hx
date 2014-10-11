@@ -3,6 +3,7 @@ package thx.promise;
 using thx.core.Nil;
 using thx.promise.Future;
 import utest.Assert;
+using thx.core.Tuple;
 
 @:access(thx.promise.Future)
 class TestFuture {
@@ -45,13 +46,13 @@ class TestFuture {
 
   public function testMap() {
     Future.value(1)
-      .map(function(i) return '$i')
+      .map(function(i) return '' + i)
       .then(Assert.equals.bind('1'));
   }
 
   public function testMapAsync() {
     Future.value(1)
-      .mapAsync(function(v, callback) callback('$v'))
+      .mapAsync(function(v, callback) callback(''+v))
       .then(Assert.equals.bind('1'));
   }
 
@@ -89,4 +90,16 @@ class TestFuture {
       });
   }
 #end
+
+  public function testTuple3() {
+    var done = Assert.createAsync();
+    Future
+      .value(new Tuple3(1, "a", 0.2))
+      .tuple(function(a, b, c) {
+        Assert.equals(1, a);
+        Assert.equals("a", b);
+        Assert.equals(0.2, c);
+        done();
+      });
+  }
 }

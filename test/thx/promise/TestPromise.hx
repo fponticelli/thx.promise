@@ -191,12 +191,13 @@ class TestPromise {
   public function testTuple3() {
     var done = Assert.createAsync(),
         err  = new Error("error");
-    Promise.value(new Tuple3(1,"a", 0.2))
-    .tuple(function(a, b, c) {
-      Assert.equals(1, a);
-      Assert.equals("a", b);
-      Assert.equals(0.2, c);
-      done();
-    });
+    Promise
+      .value(new Tuple3(1, "a", 0.2))
+      .tuple(function(a, b, c) {
+        Assert.equals(1, a);
+        Assert.equals("a", b);
+        Assert.equals(0.2, c);
+        done();
+      });
   }
 }
