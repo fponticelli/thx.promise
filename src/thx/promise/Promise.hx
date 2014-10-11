@@ -6,6 +6,10 @@ import thx.core.Tuple;
 import thx.core.Nil;
 using thx.core.Options;
 using thx.core.Arrays;
+import thx.core.Result;
+import thx.core.Either;
+
+typedef PromiseValue<T> = Result<T, Error>;
 
 class Promise<T> {
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
@@ -60,8 +64,8 @@ class Promise<T> {
 
   public function either(success : T -> Void, failure : Error -> Void) {
     then(function(r) switch r {
-      case Success(value): success(value);
-      case Failure(error): failure(error);
+      case Right(value): success(value);
+      case Left(error): failure(error);
     });
     return this;
   }
@@ -71,13 +75,13 @@ class Promise<T> {
 
   public function isFailure()
     return switch state {
-      case None, Some(Success(_)): false;
+      case None, Some(Right(_)): false;
       case _: true;
     };
 
   public function isResolved()
     return switch state {
-      case None, Some(Failure(_)): false;
+      case None, Some(Left(_)): false;
       case _: true;
     };
 
@@ -94,8 +98,8 @@ class Promise<T> {
 
   public function mapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>)
     return map(function(result) return switch result {
-        case Success(value): success(value);
-        case Failure(error): failure(error);
+        case Right(value): success(value);
+        case Left(error): failure(error);
       });
 
   public function mapFailure(failure : Error -> Promise<T>)

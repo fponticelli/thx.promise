@@ -3,6 +3,7 @@ package thx.promise;
 import haxe.PosInfos;
 import thx.core.Error;
 import thx.promise.Promise;
+import thx.core.Either;
 
 @:access(thx.promise.Promise)
 class Deferred<T> {
@@ -11,13 +12,13 @@ class Deferred<T> {
     promise = new Promise<T>();
 
   public function reject(error : Error)
-    return fulfill(Failure(error));
+    return fulfill(Left(error));
 
   public function rejectWith(error : Dynamic, ?pos : PosInfos)
-    return fulfill(Failure(Error.fromDynamic(error, pos)));
+    return fulfill(Left(Error.fromDynamic(error, pos)));
 
   public function resolve(value : T)
-    return fulfill(Success(value));
+    return fulfill(Right(value));
 
   public function fulfill(result : PromiseValue<T>)
     return promise.setState(result);
