@@ -61,11 +61,10 @@ class Future<T> {
       then(function(value)
         callback(handler(value))));
 
-  public function mapAsync<TOut>(handler : T -> (TOut -> Void) -> Void) : Future<TOut> {
-    var future = new Future<TOut>();
-    then(function(result : T) handler(result, future.setState));
-    return future;
-  }
+  public function mapAsync<TOut>(handler : T -> (TOut -> Void) -> Void) : Future<TOut>
+    return Future.create(function(callback)
+      then(function(result : T )
+        handler(result, callback)));
 
   inline public function mapFuture<TOut>(handler : T -> Future<TOut>) : Future<TOut>
     return flatMap(map(handler));
