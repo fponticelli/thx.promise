@@ -138,6 +138,12 @@ class FutureTuple6 {
       return callback(t._0, t._1, t._2, t._3, t._4, t._5)
     );
 
+  public static function mapTupleAsync<T1,T2,T3,T4,T5,T6,TOut>(future : Future<Tuple6<T1,T2,T3,T4,T5,T6>>, callback : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> (TOut -> Void) -> Void) : Future<TOut>
+    return future.mapAsync(function(t, cb) return callback(t._0, t._1, t._2, t._3, t._4, t._5, cb));
+
+  public static function mapTupleFuture<T1,T2,T3,T4,T5,T6,TOut>(future : Future<Tuple6<T1,T2,T3,T4,T5,T6>>, callback : T1 -> T2 -> T3  -> T4 -> T5 -> T6 -> Future<TOut>) : Future<TOut>
+    return future.mapFuture(function(t) return callback(t._0, t._1, t._2, t._3, t._4, t._5));
+
   public static function tuple<T1,T2,T3,T4,T5,T6>(future : Future<Tuple6<T1,T2,T3,T4,T5,T6>>, callback : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Void)
     return future.then(function(t) callback(t._0, t._1, t._2, t._3, t._4, t._5));
 }
@@ -153,6 +159,12 @@ class FutureTuple5 {
     return future.map(function(t)
       return callback(t._0, t._1, t._2, t._3, t._4)
     );
+
+  public static function mapTupleAsync<T1,T2,T3,T4,T5,TOut>(future : Future<Tuple5<T1,T2,T3,T4,T5>>, callback : T1 -> T2 -> T3 -> T4 -> T5 -> (TOut -> Void) -> Void) : Future<TOut>
+    return future.mapAsync(function(t, cb) return callback(t._0, t._1, t._2, t._3, t._4, cb));
+
+  public static function mapTupleFuture<T1,T2,T3,T4,T5,TOut>(future : Future<Tuple5<T1,T2,T3,T4,T5>>, callback : T1 -> T2 -> T3  -> T4 -> T5 -> Future<TOut>) : Future<TOut>
+    return future.mapFuture(function(t) return callback(t._0, t._1, t._2, t._3, t._4));
 
   public static function tuple<T1,T2,T3,T4,T5>(future : Future<Tuple5<T1,T2,T3,T4,T5>>, callback : T1 -> T2 -> T3 -> T4 -> T5 -> Void)
     return future.then(function(t) callback(t._0, t._1, t._2, t._3, t._4));
@@ -170,6 +182,12 @@ class FutureTuple4 {
       return callback(t._0, t._1, t._2, t._3)
     );
 
+  public static function mapTupleAsync<T1,T2,T3,T4,TOut>(future : Future<Tuple4<T1,T2,T3,T4>>, callback : T1 -> T2 -> T3 -> T4 -> (TOut -> Void) -> Void) : Future<TOut>
+    return future.mapAsync(function(t, cb) return callback(t._0, t._1, t._2, t._3, cb));
+
+  public static function mapTupleFuture<T1,T2,T3,T4,TOut>(future : Future<Tuple4<T1,T2,T3,T4>>, callback : T1 -> T2 -> T3  -> T4 -> Future<TOut>) : Future<TOut>
+    return future.mapFuture(function(t) return callback(t._0, t._1, t._2, t._3));
+
   public static function tuple<T1,T2,T3,T4>(future : Future<Tuple4<T1,T2,T3,T4>>, callback : T1 -> T2 -> T3 -> T4 -> Void)
     return future.then(function(t) callback(t._0, t._1, t._2, t._3));
 }
@@ -186,6 +204,12 @@ class FutureTuple3 {
       return callback(t._0, t._1, t._2)
     );
 
+  public static function mapTupleAsync<T1,T2,T3,TOut>(future : Future<Tuple3<T1,T2,T3>>, callback : T1 -> T2 -> T3 -> (TOut -> Void) -> Void) : Future<TOut>
+    return future.mapAsync(function(t, cb) return callback(t._0, t._1, t._2, cb));
+
+  public static function mapTupleFuture<T1,T2,T3,TOut>(future : Future<Tuple3<T1,T2,T3>>, callback : T1 -> T2 -> T3  -> Future<TOut>) : Future<TOut>
+    return future.mapFuture(function(t) return callback(t._0, t._1, t._2));
+
   public static function tuple<T1,T2,T3>(future : Future<Tuple3<T1,T2,T3>>, callback : T1 -> T2 -> T3 -> Void)
     return future.then(function(t) callback(t._0, t._1, t._2));
 }
@@ -198,6 +222,12 @@ class FutureTuple2 {
 
   public static function mapTuple<T1,T2,TOut>(future : Future<Tuple2<T1,T2>>, callback : T1 -> T2 -> TOut) : Future<TOut>
     return future.map(function(t) return callback(t._0, t._1));
+
+  public static function mapTupleAsync<T1,T2,TOut>(future : Future<Tuple2<T1,T2>>, callback : T1 -> T2 -> (TOut -> Void) -> Void) : Future<TOut>
+    return future.mapAsync(function(t, cb) return callback(t._0, t._1, cb));
+
+  public static function mapTupleFuture<T1,T2,TOut>(future : Future<Tuple2<T1,T2>>, callback : T1 -> T2 -> Future<TOut>) : Future<TOut>
+    return future.mapFuture(function(t) return callback(t._0, t._1));
 
   public static function tuple<T1,T2>(future : Future<Tuple2<T1,T2>>, callback : T1 -> T2 -> Void)
     return future.then(function(t) callback(t._0, t._1));
