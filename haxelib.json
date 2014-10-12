@@ -5,8 +5,8 @@
   "classPath": "src",
   "tags": ["thx", "promise", "async", "cross"],
   "description": "Library for lightweight promises",
-  "releasenote": "Inlined flatMap to make Java happy",
-  "version": "0.3.1",
+  "releasenote": "Added a few mapping functions",
+  "version": "0.3.2",
   "contributors": ["fponticelli"],
   "dependencies": {
     "thx.core": ""
