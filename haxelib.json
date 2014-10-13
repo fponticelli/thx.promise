@@ -5,8 +5,8 @@
   "classPath": "src",
   "tags": ["thx", "promise", "async", "cross"],
   "description": "Library for lightweight promises",
-  "releasenote": "Added a few mapping functions",
-  "version": "0.3.2",
+  "releasenote": "Improved documentation",
+  "version": "0.3.3",
   "contributors": ["fponticelli"],
   "dependencies": {
     "thx.core": ""
