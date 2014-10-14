@@ -4,9 +4,23 @@
 
 Simple reinterpretation of the Promise pattern for Haxe.
 
+## install
+
+From the command line just type:
+
+```bash
+haxelib install thx.promise
+```
+
+To use the `dev` version do:
+
+```bash
+haxelib git thx.core https://github.com/fponticelli/thx.promise.git
+```
+
 ## intro
 
-thx.promise doesn't follow the Promise/A+ specication or any other specification. The libraries simply tries to leverage the Haxe typing system without enforcing any type of obscure magic.
+thx.promise doesn't follow the [Promise/A+](https://promisesaplus.com/) specication or any other specification. The libraries simply tries to leverage the Haxe typing system without enforcing any type of obscure magic.
 
 Promises always deal with just one value. If you need multiple values, you can use a [Tuple](https://github.com/fponticelli/thx.core/blob/master/src/thx/core/Tuple.hx) and if you don't need any value use [Nil](https://github.com/fponticelli/thx.core/blob/master/src/thx/core/Nil.hx). This approach allows for a very simple API and implementation.
 mark
