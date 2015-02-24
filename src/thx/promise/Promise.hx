@@ -18,6 +18,15 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
 
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
+  public static function afterAll(arr : Array<Promise<Dynamic>>) : Promise<Nil> {
+    return Promise.create(function(resolve, reject) {
+      all(arr).either(
+        function(_) resolve(Nil.nil),
+        reject
+      );
+    });
+  }
+
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
     if(arr.length == 0)
       return Promise.value([]);
