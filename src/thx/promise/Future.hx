@@ -70,9 +70,11 @@ class Future<T> {
         handler(result, callback)));
 
   public function mapPromise<TOut>(handler : T -> Promise<TOut>) : Promise<TOut>
-    return Promise.create(function(resolve, _)
+    return Promise.create(function(resolve, reject)
       then(function(result : T)
-        handler(result).success(resolve)));
+        handler(result)
+          .success(resolve)
+          .failure(reject)));
 
   inline public function mapFuture<TOut>(handler : T -> Future<TOut>) : Future<TOut>
     return flatMap(map(handler));
