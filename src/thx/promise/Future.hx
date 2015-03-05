@@ -8,6 +8,18 @@ using thx.core.Options;
 import thx.core.Tuple;
 
 class Future<T> {
+  public static function sequence(arr : Array<Future<Dynamic>>) : Future<Nil>
+    return Future.create(function(callback : Dynamic -> Void) {
+        function poll(_ : Dynamic) {
+          if(arr.length == 0) {
+            callback(nil);
+          } else {
+            arr.shift().then(poll);
+          }
+        }
+        poll(null);
+      });
+
   public static function afterAll(arr : Array<Future<Dynamic>>) : Future<Nil>
     return Future.create(function(callback)
       all(arr).then(function(_) callback(Nil.nil)));
