@@ -249,4 +249,8 @@ class FutureNil {
     return Future.create(function(callback)
       Futures.join(p1, p2)
         .then(function(t) callback(t._1)));
+
+  public static function nil(p : Future<Dynamic>) : Future<Nil>
+    return Future.create(function(callback : Nil -> Void)
+      p.then(function(_) callback(Nil.nil)));
 }
