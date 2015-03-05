@@ -322,4 +322,9 @@ class PromiseNil {
           function(t) resolve(t._1),
           function(e) reject(e));
     });
+
+  public static function nil(p : Promise<Dynamic>) : Promise<Nil>
+    return Promise.create(function(resolve : Nil -> Void, reject)
+      p.success(function(_) resolve(Nil.nil))
+       .failure(reject));
 }
