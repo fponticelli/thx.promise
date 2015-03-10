@@ -77,9 +77,6 @@ class Future<T> {
       then(function(value)
         callback(handler(value))));
 
-  public function toPromise() : Promise<T>
-    return Promise.create(function(resolve, _) this.then(resolve));
-
   public function mapAsync<TOut>(handler : T -> (TOut -> Void) -> Void) : Future<TOut>
     return Future.create(function(callback)
       then(function(result : T )
