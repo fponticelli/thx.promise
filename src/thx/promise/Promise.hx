@@ -84,7 +84,7 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   public function always(handler : Void -> Void)
     this.then(function(_) handler());
 
-  public function either(success : T -> Void, failure : Error -> Void) {
+  public function either(success : T -> Void, failure : Error -> Void) : Promise<T> {
     this.then(function(r) switch r {
       case Right(value): success(value);
       case Left(error): failure(error);
@@ -97,13 +97,13 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     return this.delay(delayms);
 #end
 
-  public function isFailure()
+  public function isFailure() : Bool
     return switch this.state {
       case None, Some(Right(_)): false;
       case _: true;
     };
 
-  public function isResolved()
+  public function isResolved() : Bool
     return switch this.state {
       case None, Some(Left(_)): false;
       case _: true;
