@@ -5,8 +5,8 @@
   "classPath": "src",
   "tags": ["thx", "promise", "async", "cross"],
   "description": "Library for lightweight promises and futures.",
-  "releasenote": "Fixed issue with Promise.all() when getting an empty array of promises.",
-  "version": "0.3.4",
+  "releasenote": "Several additions.",
+  "version": "0.4.0",
   "contributors": ["fponticelli"],
   "dependencies": {
     "thx.core": ""
