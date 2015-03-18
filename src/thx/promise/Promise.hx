@@ -344,3 +344,17 @@ class PromiseNil {
       p.success(function(_) resolve(Nil.nil))
        .failure(reject));
 }
+
+#if js
+class PromiseAPlus {
+  public static function promise<T>(p : js.Promise<T>) : Promise<T>
+    return Promise.create(function(resolve, reject) {
+      p.then(resolve, function(e) reject(Error.fromDynamic(e)));
+    });
+
+  public static function aPlus<T>(p : Promise<T>) : js.Promise<T>
+    return new js.Promise(function(resolve, reject) {
+        p.success(resolve).failure(reject);
+      });
+}
+#end
