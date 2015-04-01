@@ -357,4 +357,16 @@ class PromiseAPlus {
         p.success(resolve).failure(reject);
       });
 }
+
+class PromiseAPlusVoid {
+  public static function promise(p : js.Promise<Void>) : Promise<Nil>
+    return Promise.create(function(resolve, reject) {
+      p.then(cast function() resolve(nil), function(e) reject(Error.fromDynamic(e)));
+    });
+
+  public static function aPlus(p : Promise<Void>) : js.Promise<Nil>
+    return new js.Promise(function(resolve, reject) {
+        p.success(cast function() resolve(nil)).failure(reject);
+      });
+}
 #end
