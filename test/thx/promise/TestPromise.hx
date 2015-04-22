@@ -1,10 +1,10 @@
 package thx.promise;
 
 using thx.promise.Promise;
-import thx.core.Error;
+import thx.Error;
 import utest.Assert;
-using thx.core.Arrays;
-using thx.core.Tuple;
+using thx.Arrays;
+using thx.Tuple;
 
 class TestPromise {
   public function new() {}

@@ -1,13 +1,13 @@
 package thx.promise;
 
 import haxe.ds.Option;
-import thx.core.Error;
-import thx.core.Tuple;
-import thx.core.Nil;
-using thx.core.Options;
-using thx.core.Arrays;
-import thx.core.Result;
-import thx.core.Either;
+import thx.Error;
+import thx.Tuple;
+import thx.Nil;
+using thx.Options;
+using thx.Arrays;
+import thx.Result;
+import thx.Either;
 
 typedef PromiseValue<T> = Result<T, Error>;
 

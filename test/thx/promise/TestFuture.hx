@@ -1,9 +1,9 @@
 package thx.promise;
 
-using thx.core.Nil;
+using thx.Nil;
 using thx.promise.Future;
 import utest.Assert;
-using thx.core.Tuple;
+using thx.Tuple;
 
 @:access(thx.promise.Future)
 class TestFuture {

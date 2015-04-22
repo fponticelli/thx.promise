@@ -1,11 +1,11 @@
 package thx.promise;
 
 import haxe.ds.Option;
-using thx.core.Arrays;
-import thx.core.Error;
-import thx.core.Nil;
-using thx.core.Options;
-import thx.core.Tuple;
+using thx.Arrays;
+import thx.Error;
+import thx.Nil;
+using thx.Options;
+import thx.Tuple;
 
 class Future<T> {
   public static function sequence(arr : Array<Future<Dynamic>>) : Future<Nil>
