@@ -20,16 +20,17 @@ class Future<T> {
         poll(null);
       });
 
+  #if !java
   public static function afterAll(arr : Array<Future<Dynamic>>) : Future<Nil>
     return Future.create(function(callback)
       all(arr).then(function(_) callback(Nil.nil)));
 
   public static function all<T>(arr : Array<Future<T>>) : Future<Array<T>>
-    return Future.create(function(callback) {
-      var results = [],
+    return Future.create(function(callback : Array<T> -> Void) {
+      var results : Array<T> = [],
           counter = 0;
-      arr.mapi(function(p, i) {
-        p.then(function(value) {
+      arr.mapi(function(p : Future<T>, i : Int) {
+        p.then(function(value : T) {
           results[i] = value;
           counter++;
           if(counter == arr.length)
@@ -37,8 +38,9 @@ class Future<T> {
         });
       });
     });
+  #end
 
-  public static function create<T>(handler : (T -> Void) -> Void) {
+  public static function create<T>(handler : (T -> Void) -> Void) : Future<T> {
     var future = new Future<T>();
     handler(future.setState);
     return future;

@@ -68,7 +68,7 @@ class TestFuture {
       .then(Assert.equals.bind('1'));
   }
 
-#if (js || java || flash)
+#if (js || flash)
   public function testAll() {
     var done = Assert.createAsync();
     Future.all([
