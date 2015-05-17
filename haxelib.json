@@ -5,8 +5,8 @@
   "classPath": "src",
   "tags": ["thx", "promise", "async", "cross"],
   "description": "Library for lightweight promises and futures.",
-  "releasenote": "JS promise conversion and updated package for thx.core.",
-  "version": "0.5.0",
+  "releasenote": "Excluded .all and .afterAll from Java since there is a bug in the generated code.",
+  "version": "0.5.1",
   "contributors": ["fponticelli"],
   "dependencies": {
     "thx.core": ""
