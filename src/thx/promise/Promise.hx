@@ -152,6 +152,14 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   public function mapSuccessPromise<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
     return mapEitherFuture(success, function(err) return Promise.error(err));
 
+  public function mapNull(handler : Void -> Promise<Null<T>>) : Promise<T>
+    return mapSuccessPromise(function(v : Null<T>) {
+      if(null == v)
+        return handler();
+      else
+        return Promise.value(v);
+    });
+
   public function success(success : T -> Void) : Promise<T>
     return either(success, function(_){});
 
