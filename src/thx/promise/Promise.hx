@@ -20,8 +20,9 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
 
   public static function sequence(arr : Array<Promise<Dynamic>>) : Promise<Nil>
     return Promise.create(function(resolve : Dynamic -> Void, reject) {
+        arr = arr.copy();
         function poll(_ : Dynamic) {
-          if(arr.length == 0) {
+          if(arr.isEmpty()) {
             resolve(nil);
           } else {
             arr.shift()
