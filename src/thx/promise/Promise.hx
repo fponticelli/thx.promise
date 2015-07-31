@@ -76,6 +76,9 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   public static function createFulfill<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T>
     return Future.create(callback);
 
+  public static function fail<T>(message : String, ?pos : haxe.PosInfos) : Promise<T>
+    return error(new thx.Error(message, pos));
+
   public static function error<T>(err : Error) : Promise<T>
     return Promise.create(function(_, reject) reject(err));
 
