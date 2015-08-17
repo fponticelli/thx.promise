@@ -64,6 +64,30 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     });
   }
 
+  public static function allSequence<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
+    return Promise.create(function(resolve, reject) {
+      var results = [],
+          counter = 0;
+
+      function poll() {
+        if(counter == arr.length)
+          return resolve(results);
+        arr[counter++]
+          .either(
+            function(value) {
+              results.push(value);
+              poll();
+            },
+            function(err) {
+              reject(err);
+            }
+          );
+      }
+
+      poll();
+    });
+  }
+
   public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
     return Future.create(function(cb : PromiseValue<T> -> Void) {
       callback(
