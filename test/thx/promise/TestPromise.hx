@@ -188,6 +188,15 @@ class TestPromise {
     });
   }
 
+  public function testMapSuccessFailure() {
+    var done = Assert.createAsync();
+    Promise.nil
+      .mapSuccess(function(_) return throw "NOOO!")
+      .success(function(_) Assert.fail("should never succeed"))
+      .failure(function(e) Assert.stringContains("NOOO!", e.toString()))
+      .always(done);
+  }
+
   public function testTuple3() {
     var done = Assert.createAsync(),
         err  = new Error("error");

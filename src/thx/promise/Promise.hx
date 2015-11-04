@@ -174,7 +174,9 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
 
   public function mapSuccess<TOut>(success : T -> TOut) : Promise<TOut>
     return mapEitherFuture(
-      function(v)   return Promise.value(success(v)),
+      function(v)   return
+        try Promise.value(success(v))
+        catch(e : Dynamic) Promise.error(Error.fromDynamic(e)),
       function(err) return Promise.error(err));
 
   public function mapSuccessPromise<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
