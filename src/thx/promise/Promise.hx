@@ -109,16 +109,14 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   public static function value<T>(v : T) : Promise<T>
     return Promise.create(function(resolve, _) resolve(v));
 
-  public function always(handler : Void -> Void)
-    this.then(function(_) handler());
+  public function always(handler : Void -> Void) : Promise<T>
+    return this.then(function(_) handler());
 
-  public function either(success : T -> Void, failure : Error -> Void) : Promise<T> {
-    this.then(function(r) switch r {
+  public function either(success : T -> Void, failure : Error -> Void) : Promise<T>
+    return this.then(function(r) switch r {
       case Right(value): success(value);
       case Left(error): failure(error);
     });
-    return this;
-  }
 
 #if (js || flash || java)
   public function delay(?delayms : Int) : Promise<T>
