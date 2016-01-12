@@ -101,7 +101,7 @@ class TestPromise {
     });
   }
 
-  public function testAllFailure() {
+  public function testAllFailure1() {
     var done = Assert.createAsync(),
         err  = new Error("error");
     Promise.all([
@@ -115,6 +115,61 @@ class TestPromise {
       Assert.equals(err, e);
       done();
     });
+  }
+
+  public function testAllFailure2() {
+    var done = Assert.createAsync();
+    function res() : Promise<String> return Promise.value('resolved');
+    function rej() : Promise<String> return Promise.error(new Error('rejected'));
+    Promise.all([res(), res(), rej()])
+    .success(function(arr) {
+      Assert.fail("should never happen");
+    })
+    .failure(function(e) {
+      Assert.pass();
+      done();
+    });
+  }
+
+  public function testAfterAllSuccess() {
+    var done = Assert.createAsync();
+    Promise.afterAll([Promise.value(1), Promise.value(2), Promise.value(3)])
+      .success(function(n) {
+        Assert.equals(Nil.nil, n);
+        done();
+      })
+      .failure(function(err) {
+        Assert.fail();
+        done();
+      });
+  }
+
+  public function testAfterAllFailure1() {
+    var done = Assert.createAsync();
+    Promise.afterAll([Promise.value(1), Promise.value(2), Promise.error(new Error('rejected'))])
+      .success(function(n) {
+        Assert.fail('should never happen');
+        done();
+      })
+      .failure(function(err) {
+        Assert.pass();
+        done();
+      });
+  }
+
+  public function testAfterAllFailure2() {
+    var done = Assert.createAsync();
+    function res() : Promise<String> return Promise.value('resolved');
+    function rej() : Promise<String> return Promise.error(new Error('rejected'));
+    Promise.afterAll([res(), res(), rej()])
+      .success(function(n) {
+        Assert.fail('should never happen');
+        done();
+      })
+      .failure(function(err) {
+        Assert.pass();
+        done();
+      });
   }
 
   public function testJoinSuccess() {
