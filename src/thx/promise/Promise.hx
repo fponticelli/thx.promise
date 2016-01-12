@@ -13,7 +13,7 @@ typedef PromiseValue<T> = Result<T, Error>;
 
 @:forward(hasValue, map, mapAsync, mapFuture, state, then)
 abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to Future<Result<T, Error>> {
-  @:from public static function futureToPromise<T>(future : Future<T>) : Promise<T>
+  public static function futureToPromise<T>(future : Future<T>) : Promise<T>
     return future.map(function(v) return (Right(v) : PromiseValue<T>));
 
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
