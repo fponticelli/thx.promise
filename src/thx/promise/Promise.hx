@@ -33,6 +33,7 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
         poll(null);
       });
 
+  @:deprecated('Promise.afterAll contains a bug in handling rejected promises, and will be removed in a future version.  Use typed `all` method with `Array<Promise<Nil>`, or `Promises.join*` methods instead.')
   public static function afterAll(arr : Array<Promise<Dynamic>>) : Promise<Nil>
     return Promise.create(function(resolve, reject) {
       all(arr).either(
@@ -232,6 +233,34 @@ class Promises {
       }, handleError);
     });
   }
+
+  // alias for join
+  public static function join2<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>>
+    return join(p1, p2);
+
+  public static function join3<T1, T2, T3>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>) : Promise<Tuple3<T1, T2, T3>>
+    return join(join(p1, p2), p3)
+      .mapSuccess(function(values) {
+        return new Tuple3(values._0._0, values._0._1, values._1);
+      });
+
+  public static function join4<T1, T2, T3, T4>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>) : Promise<Tuple4<T1, T2, T3, T4>>
+    return join(join3(p1, p2, p3), p4)
+      .mapSuccess(function(values) {
+        return new Tuple4(values._0._0, values._0._1, values._0._2, values._1);
+      });
+
+  public static function join5<T1, T2, T3, T4, T5>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5 : Promise<T5>) : Promise<Tuple5<T1, T2, T3, T4, T5>>
+    return join(join4(p1, p2, p3, p4), p5)
+      .mapSuccess(function(values) {
+        return new Tuple5(values._0._0, values._0._1, values._0._2, values._0._3, values._1);
+      });
+
+  public static function join6<T1, T2, T3, T4, T5, T6>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5 : Promise<T5>, p6 : Promise<T6>) : Promise<Tuple6<T1, T2, T3, T4, T5, T6>>
+    return join(join5(p1, p2, p3, p4, p5), p6)
+      .mapSuccess(function(values) {
+        return new Tuple6(values._0._0, values._0._1, values._0._2, values._0._3, values._0._4, values._1);
+      });
 
   public static function log<T>(promise : Promise<T>, ?prefix : String = '')
     return promise.either(
