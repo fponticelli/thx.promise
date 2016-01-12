@@ -119,8 +119,6 @@ class TestPromise {
 
   public function testAllFailure2() {
     var done = Assert.createAsync();
-    function res() : Promise<String> return Promise.value('resolved');
-    function rej() : Promise<String> return Promise.error(new Error('rejected'));
     Promise.all([res(), res(), rej()])
     .success(function(arr) {
       Assert.fail("should never happen");
@@ -157,10 +155,9 @@ class TestPromise {
       });
   }
 
+  /* Failing afterAll test preserved for future reference - see deprecation warning in Promise.afterAll */
   public function testAfterAllFailure2() {
     var done = Assert.createAsync();
-    function res() : Promise<String> return Promise.value('resolved');
-    function rej() : Promise<String> return Promise.error(new Error('rejected'));
     Promise.afterAll([res(), res(), rej()])
       .success(function(n) {
         Assert.fail('should never happen');
@@ -171,6 +168,7 @@ class TestPromise {
         done();
       });
   }
+  */
 
   public function testJoinSuccess() {
     var done = Assert.createAsync();
@@ -194,6 +192,172 @@ class TestPromise {
       })
       .success(function(t) {
         Assert.fail("should never happen");
+      });
+  }
+
+  public function testJoin3Success() {
+    var done = Assert.createAsync();
+    Promises.join3(res('1'), res('2'), res('3'))
+      .success(function(tuple) {
+        Assert.same('1', tuple._0);
+        Assert.same('2', tuple._1);
+        Assert.same('3', tuple._2);
+        done();
+      })
+      .failure(function(err) {
+        Assert.fail();
+      });
+  }
+
+  public function testJoin3Failure1() {
+    var done = Assert.createAsync();
+    Promises.join3(Promise.value('1'), Promise.value('2'), Promise.error(new Error('3')))
+      .success(function(tuple) {
+        Assert.fail();
+        done();
+      })
+      .failure(function(err) {
+        Assert.same('3', err.message);
+        done();
+      });
+  }
+
+  public function testJoin3Failure2() {
+    var done = Assert.createAsync();
+    Promises.join3(res(), res(), rej('3'))
+      .success(function(tuple) {
+        Assert.fail();
+        done();
+      })
+      .failure(function(err) {
+        Assert.same('3', err.message);
+        done();
+      });
+  }
+
+  public function testJoin4Success() {
+    var done = Assert.createAsync();
+    Promises.join4(res('1'), res('2'), res('3'), res('4'))
+      .success(function(tuple) {
+        Assert.same('1', tuple._0);
+        Assert.same('2', tuple._1);
+        Assert.same('3', tuple._2);
+        Assert.same('4', tuple._3);
+        done();
+      })
+      .failure(function(err) {
+        Assert.fail();
+      });
+  }
+
+  public function testJoin4Failure1() {
+    var done = Assert.createAsync();
+    Promises.join4(Promise.value('1'), Promise.value('2'), Promise.value('3'), Promise.error(new Error('4')))
+      .success(function(tuple) {
+        Assert.fail();
+        done();
+      })
+      .failure(function(err) {
+        Assert.same('4', err.message);
+        done();
+      });
+  }
+
+  public function testJoin4Failure2() {
+    var done = Assert.createAsync();
+    Promises.join4(res(), res(), res(), rej('4'))
+      .success(function(tuple) {
+        Assert.fail();
+        done();
+      })
+      .failure(function(err) {
+        Assert.same('4', err.message);
+        done();
+      });
+  }
+
+  public function testJoin5Success() {
+    var done = Assert.createAsync();
+    Promises.join5(res('1'), res('2'), res('3'), res('4'), res('5'))
+      .success(function(tuple) {
+        Assert.same('1', tuple._0);
+        Assert.same('2', tuple._1);
+        Assert.same('3', tuple._2);
+        Assert.same('4', tuple._3);
+        Assert.same('5', tuple._4);
+        done();
+      })
+      .failure(function(err) {
+        Assert.fail();
+      });
+  }
+
+  public function testJoin5Failure1() {
+    var done = Assert.createAsync();
+    Promises.join5(Promise.value('1'), Promise.value('2'), Promise.value('3'), Promise.value('4'), Promise.error(new Error('5')))
+      .success(function(tuple) {
+        Assert.fail();
+        done();
+      })
+      .failure(function(err) {
+        Assert.same('5', err.message);
+        done();
+      });
+  }
+
+  public function testJoin5Failure2() {
+    var done = Assert.createAsync();
+    Promises.join5(res(), res(), res(), res(), rej('5'))
+      .success(function(tuple) {
+        Assert.fail();
+        done();
+      })
+      .failure(function(err) {
+        Assert.same('5', err.message);
+        done();
+      });
+  }
+
+  public function testJoin6Success() {
+    var done = Assert.createAsync();
+    Promises.join6(res('1'), res('2'), res('3'), res('4'), res('5'), res('6'))
+      .success(function(tuple) {
+        Assert.same('1', tuple._0);
+        Assert.same('2', tuple._1);
+        Assert.same('3', tuple._2);
+        Assert.same('4', tuple._3);
+        Assert.same('5', tuple._4);
+        Assert.same('6', tuple._5);
+        done();
+      })
+      .failure(function(err) {
+        Assert.fail();
+      });
+  }
+
+  public function testJoin6Failure1() {
+    var done = Assert.createAsync();
+    Promises.join6(Promise.value('1'), Promise.value('2'), Promise.value('3'), Promise.value('4'), Promise.value('5'), Promise.error(new Error('6')))
+      .success(function(tuple) {
+        Assert.fail();
+        done();
+      })
+      .failure(function(err) {
+        Assert.same('6', err.message);
+        done();
+      });
+  }
+
+  public function testJoin6Failure2() {
+    var done = Assert.createAsync();
+    Promises.join6(res(), res(), res(), res(), res(), rej('6'))
+      .success(function(tuple) {
+        Assert.fail();
+        done();
+      })
+      .failure(function(err) {
+        Assert.same('6', err.message);
+        done();
       });
   }
 
@@ -263,5 +427,13 @@ class TestPromise {
         Assert.equals(0.2, c);
         done();
       });
+  }
+
+  function res(?val : String = "resolved") : Promise<String> {
+    return Promise.value(val);
+  }
+
+  function rej(?msg : String = "rejected") : Promise<String> {
+    return Promise.error(new Error(msg));
   }
 }
