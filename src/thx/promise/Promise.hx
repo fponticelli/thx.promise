@@ -179,6 +179,9 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
         catch(e : Dynamic) Promise.error(Error.fromDynamic(e)),
       function(err) return Promise.error(err));
 
+  inline public function flatMap<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
+    return mapSuccessPromise(success);
+
   public function mapSuccessPromise<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
     return mapEitherFuture(success, function(err) return Promise.error(err));
 
