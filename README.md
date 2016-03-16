@@ -166,5 +166,5 @@ haxelib install thx.promise
 To use the `dev` version do:
 
 ```bash
-haxelib git thx.core https://github.com/fponticelli/thx.promise.git
+haxelib git thx.promise https://github.com/fponticelli/thx.promise.git
 ```
