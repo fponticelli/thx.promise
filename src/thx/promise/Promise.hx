@@ -46,50 +46,45 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     });
 
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
-    if(arr.length == 0)
-      return Promise.value([]);
-    return Promise.create(function(resolve, reject) {
-      var results  = [],
-          counter  = 0,
-          hasError = false;
-      arr.mapi(function(p, i) {
-        p.either(function(value) {
-          if(hasError) return;
-          results[i] = value;
-          counter++;
-          if(counter == arr.length)
-            resolve(results);
-        }, function(err) {
-          if(hasError) return;
-          hasError = true;
-          reject(err);
-        });
-      });
-    });
+    return if (arr.length == 0) Promise.value([])
+    else Promise.create(
+      function(resolve, reject) {
+        var results  = [],
+            counter  = 0,
+            hasError = false;
+
+        // For each element of the array, mutate the results completion. When
+        // all results have been included, or an error is encountered, resolve
+        // the resulting promise.
+        for (i in 0...arr.length) {
+          arr[i].either(
+            function(value) {
+              if (!hasError) {
+                results[i] = value;
+                counter++;
+
+                if(counter == arr.length) resolve(results);
+              }
+            }, 
+            function(err) {
+              if (!hasError) {
+                hasError = true;
+                reject(err);
+              }
+            }
+          );
+        }
+      }
+    );
   }
 
   public static function allSequence<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
-    return Promise.create(function(resolve, reject) {
-      var results = [],
-          counter = 0;
-
-      function poll() {
-        if(counter == arr.length)
-          return resolve(results);
-        arr[counter++]
-          .either(
-            function(value) {
-              results.push(value);
-              poll();
-            },
-            function(err) {
-              reject(err);
-            }
-          );
-      }
-
-      poll();
-    });
+    return arr.reduce(
+      function(acc: Promise<Array<T>>, p: Promise<T>) return acc.flatMap(
+        function(arr: Array<T>) return p.mapSuccess(function(t) return arr.concat([t]))
+      ),
+      Promise.value([])
+    );
   }
 
   public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
