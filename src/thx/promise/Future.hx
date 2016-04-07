@@ -94,7 +94,7 @@ class Future<T> {
   inline public function mapFuture<TOut>(handler : T -> Future<TOut>) : Future<TOut>
     return flatMap(map(handler));
 
-  public function then(handler : T -> Void) {
+  public function then(handler : T -> Void): Future<T> {
     handlers.push(handler);
     update();
     return this;

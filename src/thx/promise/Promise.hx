@@ -13,9 +13,13 @@ import thx.Either;
 typedef PromiseValue<T> = Result<T, Error>;
 
 @:forward(hasValue, mapAsync, mapFuture, state, then)
-abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to Future<Result<T, Error>> {
-  @:from public static function futureToPromise<T>(future : Future<T>) : Promise<T>
-    return future.map(function(v) return (Right(v) : PromiseValue<T>));
+abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
+  private function new(future: Future<Result<T, Error>>) {
+    this = future;
+  }
+
+  public static function fromFuture<T>(future : Future<T>) : Promise<T>
+    return new Promise(future.map(function(v) return (Right(v) : PromiseValue<T>)));
 
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
@@ -91,16 +95,17 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   }
 
   public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
-    return Future.create(function(cb : PromiseValue<T> -> Void) {
-      callback(
-        function(value : T) cb((Right(value) : Result<T, Error>)),
-        // cast required by C#
-        function(error : Error) cb((Left(error) : Result<T, Error>))
-      );
-    });
+    return new Promise(
+      Future.create(function(cb : PromiseValue<T> -> Void) {
+        callback(
+          function(value : T) cb((Right(value) : PromiseValue<T>)),
+          function(error : Error) cb((Left(error) : PromiseValue<T>))
+        );
+      })
+    );
 
   public static function createFulfill<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T>
-    return Future.create(callback);
+    return new Promise(Future.create(callback));
 
   public static function fail<T>(message : String, ?pos : haxe.PosInfos) : Promise<T>
     return error(new thx.Error(message, pos));
@@ -112,17 +117,17 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     return Promise.create(function(resolve, _) resolve(v));
 
   public function always(handler : Void -> Void) : Promise<T>
-    return this.then(function(_) handler());
+    return new Promise(this.then(function(_) handler()));
 
   public function either(success : T -> Void, failure : Error -> Void) : Promise<T>
-    return this.then(function(r) switch r {
+    return new Promise(this.then(function(r) switch r {
       case Right(value): success(value);
       case Left(error): failure(error);
-    });
+    }));
 
 #if (js || flash || java)
   public function delay(?delayms : Int) : Promise<T>
-    return this.delay(delayms);
+    return new Promise(this.delay(delayms));
 #end
 
   public function isFailure() : Bool
@@ -170,14 +175,16 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     return mapEitherFuture(function(value : T) return Future.value(value), failure);
 
   public function mapFailurePromise(failure : Error -> Promise<T>) : Promise<T>
-    return mapEitherFuture(function(value) return Promise.value(value), failure);
+    return new Promise(mapEitherFuture(function(value) return Promise.value(value), failure));
 
   public function map<U>(success : T -> U) : Promise<U>
-    return mapEitherFuture(
-      function(v) return
-        try Promise.value(success(v))
-        catch(e : Dynamic) Promise.error(Error.fromDynamic(e)),
-      function(err) return Promise.error(err)
+    return new Promise(
+      mapEitherFuture(
+        function(v) return
+          try Promise.value(success(v))
+          catch(e : Dynamic) Promise.error(Error.fromDynamic(e)),
+        function(err) return Promise.error(err)
+      )
     );
 
   @:deprecated("mapSuccess is deprecated. Use map instead")
@@ -185,7 +192,7 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     return map(success);
 
   inline public function flatMap<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
-    return mapEitherFuture(success, function(err) return Promise.error(err));
+    return new Promise(mapEitherFuture(success, function(err) return Promise.error(err)));
 
   @:op(A >> B)
   inline public function andTnen<B>(next: Void -> Promise<B>): Promise<B>
@@ -428,7 +435,7 @@ class PromiseNil {
           function(e) reject(e));
     });
 
-  public static function nil(p : Promise<Dynamic>) : Promise<Nil>
+  public static function nil<A>(p : Promise<A>) : Promise<Nil>
     return p.map(const(Nil.nil));
 }
 
