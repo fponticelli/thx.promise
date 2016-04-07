@@ -1,14 +1,17 @@
 package thx.promise;
 
 import haxe.ds.Option;
-import thx.Error;
-import thx.fp.Functions.const;
-import thx.Tuple;
-import thx.Nil;
-using thx.Options;
-using thx.Arrays;
-import thx.Result;
+
 import thx.Either;
+import thx.Error;
+import thx.Nil;
+import thx.Result;
+import thx.Tuple;
+import thx.fp.Functions.const;
+
+using thx.Arrays;
+using thx.Functions;
+using thx.Options;
 
 typedef PromiseValue<T> = Result<T, Error>;
 
@@ -116,6 +119,13 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public static function value<T>(v : T) : Promise<T>
     return Promise.create(function(resolve, _) resolve(v));
 
+  public static function async<T, U>(f: T -> U): T -> Promise<U>
+    return function(t: T) return Promise.create(
+      function(resolve, reject) {
+        try resolve(f(t)) catch (e: Dynamic) reject(Error.fromDynamic(e));
+      }
+    );
+
   public function always(handler : Void -> Void) : Promise<T>
     return new Promise(this.then(function(_) handler()));
 
@@ -178,14 +188,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     return new Promise(mapEitherFuture(function(value) return Promise.value(value), failure));
 
   public function map<U>(success : T -> U) : Promise<U>
-    return new Promise(
-      mapEitherFuture(
-        function(v) return
-          try Promise.value(success(v))
-          catch(e : Dynamic) Promise.error(Error.fromDynamic(e)),
-        function(err) return Promise.error(err)
-      )
-    );
+    return flatMap(async(success));
 
   @:deprecated("mapSuccess is deprecated. Use map instead")
   inline public function mapSuccess<TOut>(success : T -> TOut) : Promise<TOut>
