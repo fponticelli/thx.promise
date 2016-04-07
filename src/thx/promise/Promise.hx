@@ -181,7 +181,7 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     );
 
   @:deprecated("mapSuccess is deprecated. Use map instead")
-  public function mapSuccess<TOut>(success : T -> TOut) : Promise<TOut>
+  inline public function mapSuccess<TOut>(success : T -> TOut) : Promise<TOut>
     return map(success);
 
   inline public function flatMap<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
@@ -429,9 +429,7 @@ class PromiseNil {
     });
 
   public static function nil(p : Promise<Dynamic>) : Promise<Nil>
-    return Promise.create(function(resolve : Nil -> Void, reject)
-      p.success(function(_) resolve(Nil.nil))
-       .failure(reject));
+    return p.map(const(Nil.nil));
 }
 
 #if js
