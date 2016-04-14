@@ -70,7 +70,7 @@ class TestPromise {
 
   public function testMapSuccessWithValue() {
     var done = Assert.createAsync();
-    Promise.value(1).mapSuccessPromise(function(v) {
+    Promise.value(1).flatMap(function(v) {
       return Promise.value(v * 2);
     }).success(function(v) {
       Assert.equals(2, v);
@@ -81,7 +81,7 @@ class TestPromise {
   public function testMapSuccessWithFailure() {
     var done = Assert.createAsync(),
         err = new Error("error");
-    Promise.error(err).mapSuccessPromise(function(v) {
+    Promise.error(err).flatMap(function(v) {
       Assert.fail("should never touch this");
       return Promise.value(v * 2);
     }).failure(function(e) {
@@ -155,7 +155,7 @@ class TestPromise {
       });
   }
 
-  /* Failing afterAll test preserved for future reference - see deprecation warning in Promise.afterAll */
+  /* Failing afterAll test preserved for future reference - see deprecation warning in Promise.afterAll 
   public function testAfterAllFailure2() {
     var done = Assert.createAsync();
     Promise.afterAll([res(), res(), rej()])
@@ -393,7 +393,7 @@ class TestPromise {
       Promise.error(err),
       Promise.error(err)
     ])
-    .mapSuccessPromise(function(v) {
+    .flatMap(function(v) {
       Assert.fail("should never happen");
       return Promise.value(new Tuple2(1, 2));
     })
@@ -410,7 +410,7 @@ class TestPromise {
   public function testMapSuccessFailure() {
     var done = Assert.createAsync();
     Promise.nil
-      .mapSuccess(function(_) return throw "NOOO!")
+      .map(function(_) return throw "NOOO!")
       .success(function(_) Assert.fail("should never succeed"))
       .failure(function(e) Assert.stringContains("NOOO!", e.toString()))
       .always(done);

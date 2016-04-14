@@ -2,6 +2,7 @@ package thx.promise;
 
 import haxe.ds.Option;
 import thx.Error;
+import thx.fp.Functions.const;
 import thx.Tuple;
 import thx.Nil;
 using thx.Options;
@@ -11,10 +12,14 @@ import thx.Either;
 
 typedef PromiseValue<T> = Result<T, Error>;
 
-@:forward(hasValue, map, mapAsync, mapFuture, state, then)
-abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to Future<Result<T, Error>> {
-  @:from public static function futureToPromise<T>(future : Future<T>) : Promise<T>
-    return future.map(function(v) return (Right(v) : PromiseValue<T>));
+@:forward(hasValue, mapAsync, mapFuture, state, then)
+abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
+  private function new(future: Future<Result<T, Error>>) {
+    this = future;
+  }
+
+  public static function fromFuture<T>(future : Future<T>) : Promise<T>
+    return new Promise(future.map(function(v) return (Right(v) : PromiseValue<T>)));
 
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
@@ -26,7 +31,7 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
             resolve(nil);
           } else {
             arr.shift()
-              .mapSuccess(poll)
+              .map(poll)
               .mapFailure(reject);
           }
         }
@@ -90,16 +95,17 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
   }
 
   public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
-    return Future.create(function(cb : PromiseValue<T> -> Void) {
-      callback(
-        function(value : T) cb((Right(value) : Result<T, Error>)),
-        // cast required by C#
-        function(error : Error) cb((Left(error) : Result<T, Error>))
-      );
-    });
+    return new Promise(
+      Future.create(function(cb : PromiseValue<T> -> Void) {
+        callback(
+          function(value : T) cb((Right(value) : PromiseValue<T>)),
+          function(error : Error) cb((Left(error) : PromiseValue<T>))
+        );
+      })
+    );
 
   public static function createFulfill<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T>
-    return Future.create(callback);
+    return new Promise(Future.create(callback));
 
   public static function fail<T>(message : String, ?pos : haxe.PosInfos) : Promise<T>
     return error(new thx.Error(message, pos));
@@ -111,17 +117,17 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     return Promise.create(function(resolve, _) resolve(v));
 
   public function always(handler : Void -> Void) : Promise<T>
-    return this.then(function(_) handler());
+    return new Promise(this.then(function(_) handler()));
 
   public function either(success : T -> Void, failure : Error -> Void) : Promise<T>
-    return this.then(function(r) switch r {
+    return new Promise(this.then(function(r) switch r {
       case Right(value): success(value);
       case Left(error): failure(error);
-    });
+    }));
 
 #if (js || flash || java)
   public function delay(?delayms : Int) : Promise<T>
-    return this.delay(delayms);
+    return new Promise(this.delay(delayms));
 #end
 
   public function isFailure() : Bool
@@ -169,23 +175,45 @@ abstract Promise<T>(Future<Result<T, Error>>) from Future<Result<T, Error>> to F
     return mapEitherFuture(function(value : T) return Future.value(value), failure);
 
   public function mapFailurePromise(failure : Error -> Promise<T>) : Promise<T>
-    return mapEitherFuture(function(value) return Promise.value(value), failure);
+    return new Promise(mapEitherFuture(function(value) return Promise.value(value), failure));
 
-  public function mapSuccess<TOut>(success : T -> TOut) : Promise<TOut>
-    return mapEitherFuture(
-      function(v)   return
-        try Promise.value(success(v))
-        catch(e : Dynamic) Promise.error(Error.fromDynamic(e)),
-      function(err) return Promise.error(err));
+  public function map<U>(success : T -> U) : Promise<U>
+    return new Promise(
+      mapEitherFuture(
+        function(v) return
+          try Promise.value(success(v))
+          catch(e : Dynamic) Promise.error(Error.fromDynamic(e)),
+        function(err) return Promise.error(err)
+      )
+    );
+
+  @:deprecated("mapSuccess is deprecated. Use map instead")
+  inline public function mapSuccess<TOut>(success : T -> TOut) : Promise<TOut>
+    return map(success);
 
   inline public function flatMap<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
-    return mapSuccessPromise(success);
+    return new Promise(mapEitherFuture(success, function(err) return Promise.error(err)));
 
+  @:op(A >> B)
+  inline public function andTnen<B>(next: Void -> Promise<B>): Promise<B>
+    return flatMap(function(_) return next());
+
+  /**
+   * Performs an additional effect with the result of this promise, and
+   * when it completes ignore the resulting value and instead return 
+   * the result of this promise. This is similar to success(...) 
+   * except that the additional side effect expressed in the result of `f`
+   * must complete before computation can proceed. 
+   */
+  inline public function foreachM<U>(f: T -> Promise<U>): Promise<T>
+    return flatMap(function(t) return f(t).map(const(t)));
+
+  @:deprecated("mapSuccessPromise is deprecated. Use flatMap instead")
   public function mapSuccessPromise<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
-    return mapEitherFuture(success, function(err) return Promise.error(err));
+    return flatMap(success);
 
   public function mapNull(handler : Void -> Promise<Null<T>>) : Promise<T>
-    return mapSuccessPromise(function(v : Null<T>) {
+    return flatMap(function(v : Null<T>) {
       if(null == v)
         return handler();
       else
@@ -243,25 +271,25 @@ class Promises {
 
   public static function join3<T1, T2, T3>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>) : Promise<Tuple3<T1, T2, T3>>
     return join(join(p1, p2), p3)
-      .mapSuccess(function(values) {
+      .map(function(values) {
         return new Tuple3(values._0._0, values._0._1, values._1);
       });
 
   public static function join4<T1, T2, T3, T4>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>) : Promise<Tuple4<T1, T2, T3, T4>>
     return join(join3(p1, p2, p3), p4)
-      .mapSuccess(function(values) {
+      .map(function(values) {
         return new Tuple4(values._0._0, values._0._1, values._0._2, values._1);
       });
 
   public static function join5<T1, T2, T3, T4, T5>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5 : Promise<T5>) : Promise<Tuple5<T1, T2, T3, T4, T5>>
     return join(join4(p1, p2, p3, p4), p5)
-      .mapSuccess(function(values) {
+      .map(function(values) {
         return new Tuple5(values._0._0, values._0._1, values._0._2, values._0._3, values._1);
       });
 
   public static function join6<T1, T2, T3, T4, T5, T6>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5 : Promise<T5>, p6 : Promise<T6>) : Promise<Tuple6<T1, T2, T3, T4, T5, T6>>
     return join(join5(p1, p2, p3, p4, p5), p6)
-      .mapSuccess(function(values) {
+      .map(function(values) {
         return new Tuple6(values._0._0, values._0._1, values._0._2, values._0._3, values._0._4, values._1);
       });
 
@@ -274,12 +302,12 @@ class Promises {
 
 class PromiseTuple6 {
   public static function mapTuplePromise<T1,T2,T3,T4,T5,T6,TOut>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Promise<TOut>) : Promise<TOut>
-    return promise.mapSuccessPromise(function(t)
+    return promise.flatMap(function(t)
       return success(t._0, t._1, t._2, t._3, t._4, t._5)
     );
 
   public static function mapTuple<T1,T2,T3,T4,T5,T6,TOut>(promise : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> TOut) : Promise<TOut>
-    return promise.mapSuccess(function(t)
+    return promise.map(function(t)
       return success(t._0, t._1, t._2, t._3, t._4, t._5)
     );
 
@@ -301,12 +329,12 @@ class PromiseTuple5 {
   }
 
   public static function mapTuplePromise<T1,T2,T3,T4,T5,TOut>(promise : Promise<Tuple5<T1,T2,T3,T4,T5>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> Promise<TOut>) : Promise<TOut>
-    return promise.mapSuccessPromise(function(t)
+    return promise.flatMap(function(t)
       return success(t._0, t._1, t._2, t._3, t._4)
     );
 
   public static function mapTuple<T1,T2,T3,T4,T5,TOut>(promise : Promise<Tuple5<T1,T2,T3,T4,T5>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> TOut) : Promise<TOut>
-    return promise.mapSuccess(function(t)
+    return promise.map(function(t)
       return success(t._0, t._1, t._2, t._3, t._4)
     );
 
@@ -328,12 +356,12 @@ class PromiseTuple4 {
   }
 
   public static function mapTuplePromise<T1,T2,T3,T4,TOut>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Promise<TOut>) : Promise<TOut>
-    return promise.mapSuccessPromise(function(t)
+    return promise.flatMap(function(t)
       return success(t._0, t._1, t._2, t._3)
     );
 
   public static function mapTuple<T1,T2,T3,T4,TOut>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> TOut) : Promise<TOut>
-    return promise.mapSuccess(function(t)
+    return promise.map(function(t)
       return success(t._0, t._1, t._2, t._3)
     );
 
@@ -355,12 +383,12 @@ class PromiseTuple3 {
   }
 
   public static function mapTuplePromise<T1,T2,T3,TOut>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Promise<TOut>) : Promise<TOut>
-    return promise.mapSuccessPromise(function(t)
+    return promise.flatMap(function(t)
       return success(t._0, t._1, t._2)
     );
 
   public static function mapTuple<T1,T2,T3,TOut>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> TOut) : Promise<TOut>
-    return promise.mapSuccess(function(t)
+    return promise.map(function(t)
       return success(t._0, t._1, t._2)
     );
 
@@ -382,12 +410,12 @@ class PromiseTuple2 {
   }
 
   public static function mapTuplePromise<T1,T2,TOut>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Promise<TOut>) : Promise<TOut>
-    return promise.mapSuccessPromise(function(t)
+    return promise.flatMap(function(t)
       return success(t._0, t._1)
     );
 
   public static function mapTuple<T1,T2,TOut>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> TOut) : Promise<TOut>
-    return promise.mapSuccess(function(t)
+    return promise.map(function(t)
       return success(t._0, t._1)
     );
 
@@ -407,10 +435,8 @@ class PromiseNil {
           function(e) reject(e));
     });
 
-  public static function nil(p : Promise<Dynamic>) : Promise<Nil>
-    return Promise.create(function(resolve : Nil -> Void, reject)
-      p.success(function(_) resolve(Nil.nil))
-       .failure(reject));
+  public static function nil<A>(p : Promise<A>) : Promise<Nil>
+    return p.map(const(Nil.nil));
 }
 
 #if js
