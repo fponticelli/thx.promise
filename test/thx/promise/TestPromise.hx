@@ -155,7 +155,7 @@ class TestPromise {
       });
   }
 
-  /* Failing afterAll test preserved for future reference - see deprecation warning in Promise.afterAll 
+  // Failing afterAll test preserved for future reference - see deprecation warning in Promise.afterAll
   public function testAfterAllFailure2() {
     var done = Assert.createAsync();
     Promise.afterAll([res(), res(), rej()])
@@ -168,7 +168,6 @@ class TestPromise {
         done();
       });
   }
-  */
 
   public function testJoinSuccess() {
     var done = Assert.createAsync();

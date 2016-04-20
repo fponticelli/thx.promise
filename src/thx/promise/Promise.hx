@@ -38,13 +38,9 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
         poll(null);
       });
 
-  @:deprecated('Promise.afterAll contains a bug in handling rejected promises, and will be removed in a future version.  Use typed `all` method with `Array<Promise<Nil>`, or `Promises.join*` methods instead.')
   public static function afterAll(arr : Array<Promise<Dynamic>>) : Promise<Nil>
     return Promise.create(function(resolve, reject) {
-      all(arr).either(
-        function(_) resolve(Nil.nil),
-        reject
-      );
+      all(arr).mapEither(function(_) resolve(Nil.nil), reject);
     });
 
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
