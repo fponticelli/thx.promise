@@ -12,11 +12,10 @@ import thx.Either;
 
 typedef PromiseValue<T> = Result<T, Error>;
 
-@:forward(hasValue, mapAsync, mapFuture, state, then)
+@:forward(hasValue, mapAsync, state, then)
 abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
-  private function new(future: Future<Result<T, Error>>) {
+  inline private function new(future: Future<Result<T, Error>>)
     this = future;
-  }
 
   public static function fromFuture<T>(future : Future<T>) : Promise<T>
     return new Promise(future.map(function(v) return (Right(v) : PromiseValue<T>)));
@@ -148,7 +147,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     return this.mapAsync(function(_, cb) return handler(cb));
 
   inline public function mapAlwaysFuture<TOut>(handler : Void -> Future<TOut>) : Future<TOut>
-    return this.mapFuture(function(_) return handler());
+    return this.flatMap(function(_) return handler());
 
   public function mapEither<TOut>(success : T -> TOut, failure : Error -> TOut) : Future<TOut>
     return this.map(function(result)
@@ -158,7 +157,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       });
 
   public function mapEitherFuture<TOut>(success : T -> Future<TOut>, failure : Error -> Future<TOut>) : Future<TOut>
-    return this.mapFuture(function(result)
+    return this.flatMap(function(result)
       return switch result {
         case Right(value): success(value);
         case Left(error):  failure(error);
@@ -172,7 +171,9 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
 
   public function mapFailurePromise(failure : Error -> Promise<T>) : Promise<T>
     return new Promise(mapEitherFuture(function(value) return Promise.value(value), failure));
-
+/*
+  public function recover(failure : Error -> Promise<T>) : Promise<T>
+*/
   public function map<U>(success : T -> U) : Promise<U>
     return new Promise(
       mapEitherFuture(
@@ -196,10 +197,10 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
 
   /**
    * Performs an additional effect with the result of this promise, and
-   * when it completes ignore the resulting value and instead return 
-   * the result of this promise. This is similar to success(...) 
+   * when it completes ignore the resulting value and instead return
+   * the result of this promise. This is similar to success(...)
    * except that the additional side effect expressed in the result of `f`
-   * must complete before computation can proceed. 
+   * must complete before computation can proceed.
    */
   inline public function foreachM<U>(f: T -> Promise<U>): Promise<T>
     return flatMap(function(t) return f(t).map(const(t)));
@@ -223,6 +224,8 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     return failure(function(err) throw err);
 
   public function toString() return 'Promise';
+
+  inline public function toFuture() : Future<PromiseValue<T>> return this;
 }
 
 class Promises {

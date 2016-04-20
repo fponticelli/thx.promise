@@ -56,15 +56,15 @@ class TestFuture {
       .then(Assert.equals.bind('1'));
   }
 
-  public function testFlatMap() {
+  public function testFlatten() {
     Future.value(Future.value(1))
-      .flatMap()
+      .flatten()
       .then(Assert.equals.bind(1));
   }
 
-  public function testMapFuture() {
+  public function testFlatMap() {
     Future.value(1)
-      .mapFuture(function(v) return Future.value('$v'))
+      .flatMap(function(v) return Future.value('$v'))
       .then(Assert.equals.bind('1'));
   }
 

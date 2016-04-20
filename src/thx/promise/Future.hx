@@ -47,7 +47,7 @@ class Future<T> {
   }
 
   // inline makes Java behave .... groovy
-  inline public static function flatMap<T>(future : Future<Future<T>>) : Future<T>
+  inline public static function flatten<T>(future : Future<Future<T>>) : Future<T>
     return Future.create(function(callback) {
       future.then(function(future) future.then(callback));
     });
@@ -65,9 +65,9 @@ class Future<T> {
 #if (js || flash || java)
   inline public function delay(?delayms : Int) {
     if(null == delayms)
-      return mapFuture(function(value) return Timer.immediateValue(value));
+      return flatMap(function(value) return Timer.immediateValue(value));
     else
-      return mapFuture(function(value) return Timer.delayValue(value, delayms));
+      return flatMap(function(value) return Timer.delayValue(value, delayms));
   }
 #end
 
@@ -76,8 +76,7 @@ class Future<T> {
 
   public function map<TOut>(handler : T -> TOut) : Future<TOut>
     return Future.create(function(callback)
-      then(function(value)
-        callback(handler(value))));
+      then(function(value) callback(handler(value))));
 
   public function mapAsync<TOut>(handler : T -> (TOut -> Void) -> Void) : Future<TOut>
     return Future.create(function(callback)
@@ -91,8 +90,13 @@ class Future<T> {
           .success(resolve)
           .failure(reject)));
 
+  @:deprecated("Future.mapFuture is deprecated, use Future.flatMap")
   inline public function mapFuture<TOut>(handler : T -> Future<TOut>) : Future<TOut>
-    return flatMap(map(handler));
+    return flatMap(handler);
+
+  public function flatMap<TOut>(handler : T -> Future<TOut>) : Future<TOut>
+    return Future.create(function(callback)
+      then(function(value) handler(value).then(callback)));
 
   public function then(handler : T -> Void): Future<T> {
     handlers.push(handler);
@@ -168,7 +172,7 @@ class FutureTuple6 {
     return future.mapAsync(function(t, cb) return callback(t._0, t._1, t._2, t._3, t._4, t._5, cb));
 
   public static function mapTupleFuture<T1,T2,T3,T4,T5,T6,TOut>(future : Future<Tuple6<T1,T2,T3,T4,T5,T6>>, callback : T1 -> T2 -> T3  -> T4 -> T5 -> T6 -> Future<TOut>) : Future<TOut>
-    return future.mapFuture(function(t) return callback(t._0, t._1, t._2, t._3, t._4, t._5));
+    return future.flatMap(function(t) return callback(t._0, t._1, t._2, t._3, t._4, t._5));
 
   public static function tuple<T1,T2,T3,T4,T5,T6>(future : Future<Tuple6<T1,T2,T3,T4,T5,T6>>, callback : T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> Void)
     return future.then(function(t) callback(t._0, t._1, t._2, t._3, t._4, t._5));
@@ -190,7 +194,7 @@ class FutureTuple5 {
     return future.mapAsync(function(t, cb) return callback(t._0, t._1, t._2, t._3, t._4, cb));
 
   public static function mapTupleFuture<T1,T2,T3,T4,T5,TOut>(future : Future<Tuple5<T1,T2,T3,T4,T5>>, callback : T1 -> T2 -> T3  -> T4 -> T5 -> Future<TOut>) : Future<TOut>
-    return future.mapFuture(function(t) return callback(t._0, t._1, t._2, t._3, t._4));
+    return future.flatMap(function(t) return callback(t._0, t._1, t._2, t._3, t._4));
 
   public static function tuple<T1,T2,T3,T4,T5>(future : Future<Tuple5<T1,T2,T3,T4,T5>>, callback : T1 -> T2 -> T3 -> T4 -> T5 -> Void)
     return future.then(function(t) callback(t._0, t._1, t._2, t._3, t._4));
@@ -212,7 +216,7 @@ class FutureTuple4 {
     return future.mapAsync(function(t, cb) return callback(t._0, t._1, t._2, t._3, cb));
 
   public static function mapTupleFuture<T1,T2,T3,T4,TOut>(future : Future<Tuple4<T1,T2,T3,T4>>, callback : T1 -> T2 -> T3  -> T4 -> Future<TOut>) : Future<TOut>
-    return future.mapFuture(function(t) return callback(t._0, t._1, t._2, t._3));
+    return future.flatMap(function(t) return callback(t._0, t._1, t._2, t._3));
 
   public static function tuple<T1,T2,T3,T4>(future : Future<Tuple4<T1,T2,T3,T4>>, callback : T1 -> T2 -> T3 -> T4 -> Void)
     return future.then(function(t) callback(t._0, t._1, t._2, t._3));
@@ -234,7 +238,7 @@ class FutureTuple3 {
     return future.mapAsync(function(t, cb) return callback(t._0, t._1, t._2, cb));
 
   public static function mapTupleFuture<T1,T2,T3,TOut>(future : Future<Tuple3<T1,T2,T3>>, callback : T1 -> T2 -> T3  -> Future<TOut>) : Future<TOut>
-    return future.mapFuture(function(t) return callback(t._0, t._1, t._2));
+    return future.flatMap(function(t) return callback(t._0, t._1, t._2));
 
   public static function tuple<T1,T2,T3>(future : Future<Tuple3<T1,T2,T3>>, callback : T1 -> T2 -> T3 -> Void)
     return future.then(function(t) callback(t._0, t._1, t._2));
@@ -253,7 +257,7 @@ class FutureTuple2 {
     return future.mapAsync(function(t, cb) return callback(t._0, t._1, cb));
 
   public static function mapTupleFuture<T1,T2,TOut>(future : Future<Tuple2<T1,T2>>, callback : T1 -> T2 -> Future<TOut>) : Future<TOut>
-    return future.mapFuture(function(t) return callback(t._0, t._1));
+    return future.flatMap(function(t) return callback(t._0, t._1));
 
   public static function tuple<T1,T2>(future : Future<Tuple2<T1,T2>>, callback : T1 -> T2 -> Void)
     return future.then(function(t) callback(t._0, t._1));
