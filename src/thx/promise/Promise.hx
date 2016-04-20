@@ -437,9 +437,9 @@ class PromiseNil {
 
 #if js
 class PromiseAPlus {
-  public static function promise<T>(p : js.Promise<T>) : Promise<T>
+  public static function promise<T>(p : js.Promise<T>, ?pos : haxe.PosInfos) : Promise<T>
     return Promise.create(function(resolve, reject) {
-      p.then(resolve, function(e) reject(Error.fromDynamic(e)));
+      p.then(resolve, function(e) reject(Error.fromDynamic(e, pos)));
     });
 
   public static function aPlus<T>(p : Promise<T>) : js.Promise<T>
