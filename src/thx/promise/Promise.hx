@@ -24,18 +24,18 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
 
   public static function sequence(arr : Array<Promise<Dynamic>>) : Promise<Nil>
     return Promise.create(function(resolve : Dynamic -> Void, reject) {
-        arr = arr.copy();
-        function poll(_ : Dynamic) {
-          if(arr.isEmpty()) {
-            resolve(nil);
-          } else {
-            arr.shift()
-              .map(poll)
-              .mapFailure(reject);
-          }
+      arr = arr.copy();
+      function poll() {
+        if(arr.isEmpty()) {
+          resolve(nil);
+        } else {
+          arr.shift()
+            .success(function(_) poll())
+            .failure(reject);
         }
-        poll(null);
-      });
+      }
+      poll();
+    });
 
   public static function afterAll(arr : Array<Promise<Dynamic>>) : Promise<Nil>
     return Promise.create(function(resolve, reject) {
@@ -163,17 +163,21 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
         case Left(error):  failure(error);
       });
 
+  @:deprecated("Promise.mapFailure is deprecated, use Promise.recover instead")
   public function mapFailure(failure : Error -> T) : Future<T>
     return mapEither(function(value : T) return value, failure);
 
+  @:deprecated("Promise.mapFailureFuture is deprecated, use Promise.recover instead")
   public function mapFailureFuture(failure : Error -> Future<T>) : Future<T>
     return mapEitherFuture(function(value : T) return Future.value(value), failure);
 
+  @:deprecated("Promise.mapFailurePromise is deprecated, use Promise.recover instead")
   public function mapFailurePromise(failure : Error -> Promise<T>) : Promise<T>
-    return new Promise(mapEitherFuture(function(value) return Promise.value(value), failure));
-/*
+    return recover(failure);
+
   public function recover(failure : Error -> Promise<T>) : Promise<T>
-*/
+    return new Promise(mapEitherFuture(function(value) return Promise.value(value), failure));
+
   public function map<U>(success : T -> U) : Promise<U>
     return new Promise(
       mapEitherFuture(
