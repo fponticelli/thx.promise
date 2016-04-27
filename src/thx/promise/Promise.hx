@@ -163,7 +163,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
         case Left(error):  failure(error);
       });
 
-  @:deprecated("Promise.mapFailure is deprecated, use Promise.recover instead")
+  @:deprecated("Promise.mapFailure is deprecated, use Promise.recoverAsFuture instead")
   public function mapFailure(failure : Error -> T) : Future<T>
     return mapEither(function(value : T) return value, failure);
 
@@ -177,6 +177,9 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
 
   public function recover(failure : Error -> Promise<T>) : Promise<T>
     return new Promise(mapEitherFuture(function(value) return Promise.value(value), failure));
+
+  public function recoverAsFuture(failure : Error -> T) : Future<T>
+    return mapEither(function(value : T) return value, failure);
 
   public function map<U>(success : T -> U) : Promise<U>
     return new Promise(
