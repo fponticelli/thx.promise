@@ -22,6 +22,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
 
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
+  // TODO try/catch
   public static function sequence(arr : Array<Promise<Dynamic>>) : Promise<Nil>
     return Promise.create(function(resolve : Dynamic -> Void, reject) {
       arr = arr.copy();
@@ -37,11 +38,13 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       poll();
     });
 
+  // TODO try/catch
   public static function afterAll(arr : Array<Promise<Dynamic>>) : Promise<Nil>
     return Promise.create(function(resolve, reject) {
       all(arr).mapEither(function(_) resolve(Nil.nil), reject);
     });
 
+  // TODO try/catch
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
     if(arr.length == 0)
       return Promise.value([]);
@@ -65,6 +68,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     });
   }
 
+  // TODO try/catch
   public static function allSequence<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
     return Promise.create(function(resolve, reject) {
       var results = [],
@@ -92,6 +96,20 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
     return new Promise(
       Future.create(function(cb : PromiseValue<T> -> Void) {
+        try {
+          callback(
+            function(value : T) cb((Right(value) : PromiseValue<T>)),
+            function(error : Error) cb((Left(error) : PromiseValue<T>))
+          );
+        } catch(e : Dynamic) {
+          cb((Left(Error.fromDynamic(e)) : PromiseValue<T>));
+        }
+      })
+    );
+
+  public static function createUnsafe<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
+    return new Promise(
+      Future.create(function(cb : PromiseValue<T> -> Void) {
         callback(
           function(value : T) cb((Right(value) : PromiseValue<T>)),
           function(error : Error) cb((Left(error) : PromiseValue<T>))
@@ -99,6 +117,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       })
     );
 
+  // TODO try/catch
   public static function createFulfill<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T>
     return new Promise(Future.create(callback));
 
@@ -111,14 +130,27 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public static function value<T>(v : T) : Promise<T>
     return Promise.create(function(resolve, _) resolve(v));
 
+    // TODO try/catch
   public function always(handler : Void -> Void) : Promise<T>
     return new Promise(this.then(function(_) handler()));
 
   public function either(success : T -> Void, failure : Error -> Void) : Promise<T>
-    return new Promise(this.then(function(r) switch r {
-      case Right(value): success(value);
-      case Left(error): failure(error);
-    }));
+    return Promise.createUnsafe(function(resolve : T -> Void, reject : Error -> Void) {
+      this.then(function(r) {
+        try {
+          switch r {
+            case Right(value):
+              success(value);
+              resolve(value);
+            case Left(error):
+              failure(error);
+              reject(error);
+          }
+        } catch(e : Dynamic) {
+          reject(Error.fromDynamic(e));
+        }
+      });
+    });
 
 #if (js || flash || java)
   public function delay(?delayms : Int) : Promise<T>
@@ -140,15 +172,19 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public function failure(failure : Error -> Void) : Promise<T>
     return either(function(_){}, failure);
 
+  // TODO try/catch
   inline public function mapAlways<TOut>(handler : Void -> TOut) : Future<TOut>
     return this.map(function(_) return handler());
 
+  // TODO try/catch
   inline public function mapAlwaysAsync<TOut>(handler : (TOut -> Void) -> Void) : Future<TOut>
     return this.mapAsync(function(_, cb) return handler(cb));
 
+  // TODO try/catch
   inline public function mapAlwaysFuture<TOut>(handler : Void -> Future<TOut>) : Future<TOut>
     return this.flatMap(function(_) return handler());
 
+  // TODO try/catch
   public function mapEither<TOut>(success : T -> TOut, failure : Error -> TOut) : Future<TOut>
     return this.map(function(result)
       return switch result {
@@ -156,6 +192,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
         case Left(error):  failure(error);
       });
 
+  // TODO try/catch
   public function mapEitherFuture<TOut>(success : T -> Future<TOut>, failure : Error -> Future<TOut>) : Future<TOut>
     return this.flatMap(function(result)
       return switch result {
@@ -175,12 +212,15 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public function mapFailurePromise(failure : Error -> Promise<T>) : Promise<T>
     return recover(failure);
 
+  // TODO try/catch
   public function recover(failure : Error -> Promise<T>) : Promise<T>
     return new Promise(mapEitherFuture(function(value) return Promise.value(value), failure));
 
+  // TODO try/catch
   public function recoverAsFuture(failure : Error -> T) : Future<T>
     return mapEither(function(value : T) return value, failure);
 
+  // TODO try/catch
   public function map<U>(success : T -> U) : Promise<U>
     return new Promise(
       mapEitherFuture(
@@ -195,11 +235,12 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   inline public function mapSuccess<TOut>(success : T -> TOut) : Promise<TOut>
     return map(success);
 
+  // TODO try/catch
   inline public function flatMap<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
     return new Promise(mapEitherFuture(success, function(err) return Promise.error(err)));
 
   @:op(A >> B)
-  inline public function andTnen<B>(next: Void -> Promise<B>): Promise<B>
+  inline public function andThen<B>(next: Void -> Promise<B>): Promise<B>
     return flatMap(function(_) return next());
 
   /**
@@ -209,6 +250,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
    * except that the additional side effect expressed in the result of `f`
    * must complete before computation can proceed.
    */
+  // TODO try/catch
   inline public function foreachM<U>(f: T -> Promise<U>): Promise<T>
     return flatMap(function(t) return f(t).map(const(t)));
 
@@ -216,6 +258,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public function mapSuccessPromise<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
     return flatMap(success);
 
+  // TODO try/catch
   public function mapNull(handler : Void -> Promise<Null<T>>) : Promise<T>
     return flatMap(function(v : Null<T>) {
       if(null == v)
@@ -227,6 +270,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public function success(success : T -> Void) : Promise<T>
     return either(success, function(_){});
 
+  // TODO try/catch
   public function throwFailure() : Promise<T>
     return failure(function(err) throw err);
 
