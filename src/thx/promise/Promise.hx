@@ -22,7 +22,6 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
 
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
-  // TODO try/catch
   public static function sequence(arr : Array<Promise<Dynamic>>) : Promise<Nil>
     return Promise.create(function(resolve : Dynamic -> Void, reject) {
       arr = arr.copy();
@@ -38,13 +37,11 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       poll();
     });
 
-  // TODO try/catch
   public static function afterAll(arr : Array<Promise<Dynamic>>) : Promise<Nil>
     return Promise.create(function(resolve, reject) {
       all(arr).mapEither(function(_) resolve(Nil.nil), reject);
     });
 
-  // TODO try/catch
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
     if(arr.length == 0)
       return Promise.value([]);
@@ -68,7 +65,6 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     });
   }
 
-  // TODO try/catch
   public static function allSequence<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
     return Promise.create(function(resolve, reject) {
       var results = [],
@@ -117,9 +113,10 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       })
     );
 
-  // TODO try/catch
   public static function createFulfill<T>(callback : (PromiseValue<T> -> Void) -> Void) : Promise<T>
-    return new Promise(Future.create(callback));
+    return new Promise(Future.create(function(cb) {
+      try callback(cb) catch(e : Dynamic) cb(Left(Error.fromDynamic(e)));
+    }));
 
   public static function fail<T>(message : String, ?pos : haxe.PosInfos) : Promise<T>
     return error(new thx.Error(message, pos));
@@ -130,9 +127,19 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public static function value<T>(v : T) : Promise<T>
     return Promise.create(function(resolve, _) resolve(v));
 
-    // TODO try/catch
   public function always(handler : Void -> Void) : Promise<T>
-    return new Promise(this.then(function(_) handler()));
+    return new Promise(
+      Future.create(function(cb : PromiseValue<T> -> Void) {
+        this.then(function(v) {
+          try {
+            handler();
+            cb(v);
+          } catch(e : Dynamic) {
+            cb(Left(Error.fromDynamic(e)));
+          }
+        });
+      })
+    );
 
   public function either(success : T -> Void, failure : Error -> Void) : Promise<T>
     return Promise.createUnsafe(function(resolve : T -> Void, reject : Error -> Void) {
@@ -172,72 +179,71 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public function failure(failure : Error -> Void) : Promise<T>
     return either(function(_){}, failure);
 
-  // TODO try/catch
-  inline public function mapAlways<TOut>(handler : Void -> TOut) : Future<TOut>
-    return this.map(function(_) return handler());
+  inline public function mapAlways<TOut>(handler : Void -> TOut) : Promise<TOut>
+    return map(function(_) return handler());
 
-  // TODO try/catch
-  inline public function mapAlwaysAsync<TOut>(handler : (TOut -> Void) -> Void) : Future<TOut>
+  inline public function mapAlwaysAsyncFuture<TOut>(handler : (TOut -> Void) -> Void) : Future<TOut>
     return this.mapAsync(function(_, cb) return handler(cb));
 
-  // TODO try/catch
   inline public function mapAlwaysFuture<TOut>(handler : Void -> Future<TOut>) : Future<TOut>
     return this.flatMap(function(_) return handler());
 
-  // TODO try/catch
-  public function mapEither<TOut>(success : T -> TOut, failure : Error -> TOut) : Future<TOut>
-    return this.map(function(result)
-      return switch result {
-        case Right(value): success(value);
-        case Left(error):  failure(error);
-      });
+  public function mapEither<TOut>(success : T -> TOut, failure : Error -> TOut) : Promise<TOut>
+    return flatMapEither(
+      function(v) return Promise.value(success(v)),
+      function(e) return Promise.value(failure(e))
+    );
 
-  // TODO try/catch
-  public function mapEitherFuture<TOut>(success : T -> Future<TOut>, failure : Error -> Future<TOut>) : Future<TOut>
+  public function mapEitherFuture<TOut>(success : T -> TOut, failure : Error -> TOut) : Future<TOut>
+    return flatMapEitherFuture(
+      function(v) return Future.value(success(v)),
+      function(e) return Future.value(failure(e))
+    );
+
+  public function flatMapEitherFuture<TOut>(success : T -> Future<TOut>, failure : Error -> Future<TOut>) : Future<TOut>
     return this.flatMap(function(result)
       return switch result {
         case Right(value): success(value);
         case Left(error):  failure(error);
       });
 
+  public function flatMapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>) : Promise<TOut>
+    return Promise.createUnsafe(function(resolve, reject) {
+      this.then(function(result) {
+        switch result {
+          case Right(value): try success(value).either(resolve, reject) catch(e : Dynamic) reject(Error.fromDynamic(e));
+          case Left(error):  try failure(error).either(resolve, reject) catch(e : Dynamic) reject(Error.fromDynamic(e));
+        }
+      });
+    });
+
   @:deprecated("Promise.mapFailure is deprecated, use Promise.recoverAsFuture instead")
   public function mapFailure(failure : Error -> T) : Future<T>
-    return mapEither(function(value : T) return value, failure);
+    return mapEitherFuture(function(value : T) return value, failure);
 
   @:deprecated("Promise.mapFailureFuture is deprecated, use Promise.recover instead")
   public function mapFailureFuture(failure : Error -> Future<T>) : Future<T>
-    return mapEitherFuture(function(value : T) return Future.value(value), failure);
+    return flatMapEitherFuture(function(value : T) return Future.value(value), failure);
 
   @:deprecated("Promise.mapFailurePromise is deprecated, use Promise.recover instead")
   public function mapFailurePromise(failure : Error -> Promise<T>) : Promise<T>
     return recover(failure);
 
-  // TODO try/catch
   public function recover(failure : Error -> Promise<T>) : Promise<T>
-    return new Promise(mapEitherFuture(function(value) return Promise.value(value), failure));
+    return flatMapEither(function(value) return Promise.value(value), failure);
 
-  // TODO try/catch
   public function recoverAsFuture(failure : Error -> T) : Future<T>
-    return mapEither(function(value : T) return value, failure);
+    return mapEitherFuture(function(value : T) return value, failure);
 
-  // TODO try/catch
   public function map<U>(success : T -> U) : Promise<U>
-    return new Promise(
-      mapEitherFuture(
-        function(v) return
-          try Promise.value(success(v))
-          catch(e : Dynamic) Promise.error(Error.fromDynamic(e)),
-        function(err) return Promise.error(err)
-      )
-    );
+    return flatMap(function(v) return Promise.value(success(v)));
 
   @:deprecated("mapSuccess is deprecated. Use map instead")
   inline public function mapSuccess<TOut>(success : T -> TOut) : Promise<TOut>
     return map(success);
 
-  // TODO try/catch
   inline public function flatMap<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
-    return new Promise(mapEitherFuture(success, function(err) return Promise.error(err)));
+    return flatMapEither(success, function(err) return Promise.error(err));
 
   @:op(A >> B)
   inline public function andThen<B>(next: Void -> Promise<B>): Promise<B>
@@ -250,16 +256,18 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
    * except that the additional side effect expressed in the result of `f`
    * must complete before computation can proceed.
    */
-  // TODO try/catch
   inline public function foreachM<U>(f: T -> Promise<U>): Promise<T>
     return flatMap(function(t) return f(t).map(const(t)));
 
-  @:deprecated("mapSuccessPromise is deprecated. Use flatMap instead")
+  @:deprecated("Promise.mapSuccessPromise is deprecated. Use Promise.flatMap instead")
   public function mapSuccessPromise<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
     return flatMap(success);
 
-  // TODO try/catch
+  @:deprecated("Promise.mapNull is deprecated. Use Promise.recoverNull instead")
   public function mapNull(handler : Void -> Promise<Null<T>>) : Promise<T>
+    return recoverNull(handler);
+
+  public function recoverNull(handler : Void -> Promise<Null<T>>) : Promise<T>
     return flatMap(function(v : Null<T>) {
       if(null == v)
         return handler();
@@ -270,9 +278,11 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public function success(success : T -> Void) : Promise<T>
     return either(success, function(_){});
 
-  // TODO try/catch
   public function throwFailure() : Promise<T>
-    return failure(function(err) throw err);
+    return new Promise(this.then(function(r) switch r {
+      case Left(err): throw err;
+      case _: // do nothing
+    }));
 
   public function toString() return 'Promise';
 

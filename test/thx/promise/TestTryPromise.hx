@@ -60,4 +60,56 @@ class TestTryPromise {
       .failure(function(e) Assert.stringContains('niet', e.message))
       .always(Assert.createAsync());
   }
+
+  public function testTryAlways() {
+    Promise.nil
+      .always(function() throw 'bad')
+      .failure(function(e) Assert.stringContains('bad', e.message))
+      .always(Assert.createAsync());
+  }
+
+  public function testTryThrowFailure() {
+    Assert.raises(Promise.fail("meh").throwFailure, thx.Error);
+  }
+
+  public function testTryMap() {
+    Promise.nil
+      .map(function(_) return throw "meh")
+      .failure(function(e) Assert.stringContains('meh', e.message))
+      .always(Assert.createAsync());
+  }
+
+  public function testTryFlatMap() {
+    Promise.nil
+      .flatMap(function(_) return throw "meh")
+      .failure(function(e) Assert.stringContains('meh', e.message))
+      .always(Assert.createAsync());
+  }
+
+  public function testTryFlatMapEitherSuccess() {
+    Promise.nil
+      .flatMapEither(
+        function(_) return throw "meh",
+        function(e) return throw "mah"
+      )
+      .failure(function(e) Assert.stringContains('meh', e.message))
+      .always(Assert.createAsync());
+  }
+
+  public function testTryFlatMapEitherFailure() {
+    Promise.fail("bah")
+      .flatMapEither(
+        function(_) return throw "meh",
+        function(e) return throw "mah"
+      )
+      .failure(function(e) Assert.stringContains('mah', e.message))
+      .always(Assert.createAsync());
+  }
+
+  public function testTryRecoverNull() {
+    Promise.value(null)
+      .recoverNull(function() : Promise<String> return throw "meh")
+      .failure(function(e) Assert.stringContains('meh', e.message))
+      .always(Assert.createAsync());
+  }
 }
