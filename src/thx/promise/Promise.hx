@@ -4,6 +4,7 @@ import haxe.ds.Option;
 
 import thx.Either;
 import thx.Error;
+import thx.Functions.identity;
 import thx.Nil;
 import thx.Result;
 import thx.Tuple;
@@ -25,24 +26,17 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
 
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
-  public static function sequence(arr : Array<Promise<Dynamic>>) : Promise<Nil>
-    return Promise.create(function(resolve : Dynamic -> Void, reject) {
-      arr = arr.copy();
-      function poll() {
-        if(arr.isEmpty()) {
-          resolve(nil);
-        } else {
-          arr.shift()
-            .success(function(_) poll())
-            .failure(reject);
+  public static inline function wrapEffect<A, B>(f: A -> B): A -> Promise<B>
+    return function(a: A) return Promise.create(function(resolve, reject) {
+      try {
+        resolve(f(a));
+      } catch (e: Dynamic) {
+        try {
+          reject(Error.fromDynamic(e));
+        } catch (e: Dynamic) {
+          reject(new thx.Error("Unrecoverable error; could not convert dynamic value to error type."));
         }
       }
-      poll();
-    });
-
-  public static function afterAll(arr : Array<Promise<Dynamic>>) : Promise<Nil>
-    return Promise.create(function(resolve, reject) {
-      all(arr).mapEither(function(_) resolve(Nil.nil), reject);
     });
 
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
@@ -68,6 +62,9 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     });
   }
 
+  public static function afterAll(arr : Array<Promise<Dynamic>>) : Promise<Nil>
+    return all(arr).map(const(Nil.nil));
+
   public static function allSequence<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
     return Promise.create(function(resolve, reject) {
       var results = [],
@@ -91,6 +88,9 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       poll();
     });
   }
+
+  public static function sequence(arr : Array<Promise<Dynamic>>) : Promise<Nil>
+    return allSequence(arr).map(const(Nil.nil));
 
   public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
     return new Promise(
@@ -192,10 +192,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     return this.flatMap(function(_) return handler());
 
   public function mapEither<TOut>(success : T -> TOut, failure : Error -> TOut) : Promise<TOut>
-    return flatMapEither(
-      function(v) return Promise.value(success(v)),
-      function(e) return Promise.value(failure(e))
-    );
+    return flatMapEither(wrapEffect(success), wrapEffect(failure));
 
   public function mapEitherFuture<TOut>(success : T -> TOut, failure : Error -> TOut) : Future<TOut>
     return flatMapEitherFuture(
@@ -233,7 +230,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     return recover(failure);
 
   public function recover(failure : Error -> Promise<T>) : Promise<T>
-    return flatMapEither(function(value) return Promise.value(value), failure);
+    return flatMapEither(Promise.value, failure);
 
   public function recoverAsFuture(failure : Error -> T) : Future<T>
     return mapEitherFuture(function(value : T) return value, failure);
@@ -249,7 +246,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     return map(success);
 
   inline public function flatMap<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
-    return flatMapEither(success, function(err) return Promise.error(err));
+    return flatMapEither(success, Promise.error);
 
   @:op(A >> B)
   inline public function andThen<B>(next: Void -> Promise<B>): Promise<B>
@@ -280,6 +277,9 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       else
         return Promise.value(v);
     });
+
+  public function withSuccess<U>(f: T -> Promise<U>): Promise<T>
+    return flatMap(function(t) return f(t).map(const(t)));
 
   public function success(success : T -> Void) : Promise<T>
     return either(success, function(_){});
@@ -342,6 +342,9 @@ class Promises {
 
   public static function par6<T1, T2, T3, T4, T5, T6, T7>(f: T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> T7, p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5: Promise<T5>, p6: Promise<T6>): Promise<T7>
     return par(function(f, g) return f(g), par5(f.curry(), p1, p2, p3, p4, p5), p6);
+
+  public static function flatten<A>(promise: Promise<Promise<A>>): Promise<A>
+    return promise.flatMap(identity);
 
   inline public static function join<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>>
     return par(Tuple.of, p1, p2);
