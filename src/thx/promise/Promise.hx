@@ -1,14 +1,17 @@
 package thx.promise;
 
 import haxe.ds.Option;
-import thx.Error;
-import thx.fp.Functions.const;
-import thx.Tuple;
-import thx.Nil;
-using thx.Options;
-using thx.Arrays;
-import thx.Result;
+
 import thx.Either;
+import thx.Error;
+import thx.Nil;
+import thx.Result;
+import thx.Tuple;
+import thx.fp.Functions.const;
+
+using thx.Arrays;
+using thx.Functions;
+using thx.Options;
 
 typedef PromiseValue<T> = Result<T, Error>;
 
@@ -238,6 +241,9 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public function map<U>(success : T -> U) : Promise<U>
     return flatMap(function(v) return Promise.value(success(v)));
 
+  public function ap<U>(pf: Promise<T -> U>): Promise<U>
+    return flatMap(function(t) return pf.map.fn(_(t)));
+
   @:deprecated("mapSuccess is deprecated. Use map instead")
   inline public function mapSuccess<TOut>(success : T -> TOut) : Promise<TOut>
     return map(success);
@@ -290,7 +296,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
 }
 
 class Promises {
-  public static function join<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>> {
+  public static function par<T1,T2,T3>(f: T1 -> T2 -> T3, p1 : Promise<T1>, p2 : Promise<T2>) : Promise<T3> {
     return Promise.create(function(resolve, reject) {
       var hasError = false,
           counter = 0,
@@ -300,7 +306,7 @@ class Promises {
       function complete() {
         if(counter < 2)
           return;
-        resolve(new Tuple2(v1, v2));
+        resolve(f(v1, v2));
       }
 
       function handleError(error) {
@@ -325,33 +331,36 @@ class Promises {
     });
   }
 
+  public static function par3<T1, T2, T3, T4>(f: T1 -> T2 -> T3 -> T4, p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>) : Promise<T4>
+    return par(function(f, g) return f(g), par(f.curry(), p1, p2), p3);
+
+  public static function par4<T1, T2, T3, T4, T5>(f: T1 -> T2 -> T3 -> T4 -> T5, p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>) : Promise<T5>
+    return par(function(f, g) return f(g), par3(f.curry(), p1, p2, p3), p4);
+
+  public static function par5<T1, T2, T3, T4, T5, T6>(f: T1 -> T2 -> T3 -> T4 -> T5 -> T6, p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5: Promise<T5>):Promise<T6>
+    return par(function(f, g) return f(g), par4(f.curry(), p1, p2, p3, p4), p5);
+
+  public static function par6<T1, T2, T3, T4, T5, T6, T7>(f: T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> T7, p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5: Promise<T5>, p6: Promise<T6>): Promise<T7>
+    return par(function(f, g) return f(g), par5(f.curry(), p1, p2, p3, p4, p5), p6);
+
+  inline public static function join<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>>
+    return par(Tuple.of, p1, p2);
+
   // alias for join
-  public static function join2<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>>
+  inline public static function join2<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>>
     return join(p1, p2);
 
   public static function join3<T1, T2, T3>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>) : Promise<Tuple3<T1, T2, T3>>
-    return join(join(p1, p2), p3)
-      .map(function(values) {
-        return new Tuple3(values._0._0, values._0._1, values._1);
-      });
+    return par3(Tuple3.of, p1, p2, p3);
 
   public static function join4<T1, T2, T3, T4>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>) : Promise<Tuple4<T1, T2, T3, T4>>
-    return join(join3(p1, p2, p3), p4)
-      .map(function(values) {
-        return new Tuple4(values._0._0, values._0._1, values._0._2, values._1);
-      });
+    return par4(Tuple4.of, p1, p2, p3, p4);
 
   public static function join5<T1, T2, T3, T4, T5>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5 : Promise<T5>) : Promise<Tuple5<T1, T2, T3, T4, T5>>
-    return join(join4(p1, p2, p3, p4), p5)
-      .map(function(values) {
-        return new Tuple5(values._0._0, values._0._1, values._0._2, values._0._3, values._1);
-      });
+    return par5(Tuple5.of, p1, p2, p3, p4, p5);
 
   public static function join6<T1, T2, T3, T4, T5, T6>(p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5 : Promise<T5>, p6 : Promise<T6>) : Promise<Tuple6<T1, T2, T3, T4, T5, T6>>
-    return join(join5(p1, p2, p3, p4, p5), p6)
-      .map(function(values) {
-        return new Tuple6(values._0._0, values._0._1, values._0._2, values._0._3, values._0._4, values._1);
-      });
+    return par6(Tuple6.of, p1, p2, p3, p4, p5, p6);
 
   public static function log<T>(promise : Promise<T>, ?prefix : String = '')
     return promise.either(
@@ -379,14 +388,8 @@ class PromiseTuple6 {
 }
 
 class PromiseTuple5 {
-  public static function join<T1,T2,T3,T4,T5,T6>(p1 : Promise<Tuple5<T1,T2,T3,T4,T5>>, p2 : Promise<T6>) : Promise<Tuple6<T1,T2,T3,T4,T5,T6>> {
-    return Promise.create(function(resolve, reject) {
-      Promises.join(p1, p2)
-        .either(
-          function(t) resolve(t._0.with(t._1)),
-          function(e) reject(e));
-    });
-  }
+  public static function join<T1,T2,T3,T4,T5,T6>(p1 : Promise<Tuple5<T1,T2,T3,T4,T5>>, p2 : Promise<T6>) : Promise<Tuple6<T1,T2,T3,T4,T5,T6>>
+    return Promises.par(function(f: Tuple5<T1,T2,T3,T4,T5>, g: T6) return f.with(g), p1, p2);
 
   public static function mapTuplePromise<T1,T2,T3,T4,T5,TOut>(promise : Promise<Tuple5<T1,T2,T3,T4,T5>>, success : T1 -> T2 -> T3 -> T4 -> T5 -> Promise<TOut>) : Promise<TOut>
     return promise.flatMap(function(t)
@@ -406,14 +409,8 @@ class PromiseTuple5 {
 }
 
 class PromiseTuple4 {
-  public static function join<T1,T2,T3,T4,T5>(p1 : Promise<Tuple4<T1,T2,T3,T4>>, p2 : Promise<T5>) : Promise<Tuple5<T1,T2,T3,T4,T5>> {
-    return Promise.create(function(resolve, reject) {
-      Promises.join(p1, p2)
-        .either(
-          function(t) resolve(t._0.with(t._1)),
-          function(e) reject(e));
-    });
-  }
+  public static function join<T1,T2,T3,T4,T5>(p1 : Promise<Tuple4<T1,T2,T3,T4>>, p2 : Promise<T5>) : Promise<Tuple5<T1,T2,T3,T4,T5>>
+    return Promises.par(function(f: Tuple4<T1,T2,T3,T4>, g: T5) return f.with(g), p1, p2);
 
   public static function mapTuplePromise<T1,T2,T3,T4,TOut>(promise : Promise<Tuple4<T1,T2,T3,T4>>, success : T1 -> T2 -> T3 -> T4 -> Promise<TOut>) : Promise<TOut>
     return promise.flatMap(function(t)
@@ -433,14 +430,8 @@ class PromiseTuple4 {
 }
 
 class PromiseTuple3 {
-  public static function join<T1,T2,T3,T4>(p1 : Promise<Tuple3<T1,T2,T3>>, p2 : Promise<T4>) : Promise<Tuple4<T1,T2,T3,T4>> {
-    return Promise.create(function(resolve, reject) {
-      Promises.join(p1, p2)
-        .either(
-          function(t) resolve(t._0.with(t._1)),
-          function(e) reject(e));
-    });
-  }
+  public static function join<T1,T2,T3,T4>(p1 : Promise<Tuple3<T1,T2,T3>>, p2 : Promise<T4>) : Promise<Tuple4<T1,T2,T3,T4>>
+    return Promises.par(function(f: Tuple3<T1, T2, T3>, g: T4) return f.with(g), p1, p2);
 
   public static function mapTuplePromise<T1,T2,T3,TOut>(promise : Promise<Tuple3<T1,T2,T3>>, success : T1 -> T2 -> T3 -> Promise<TOut>) : Promise<TOut>
     return promise.flatMap(function(t)
@@ -460,14 +451,8 @@ class PromiseTuple3 {
 }
 
 class PromiseTuple2 {
-  public static function join<T1,T2,T3>(p1 : Promise<Tuple2<T1,T2>>, p2 : Promise<T3>) : Promise<Tuple3<T1,T2,T3>> {
-    return Promise.create(function(resolve, reject) {
-      Promises.join(p1, p2)
-        .either(
-          function(t) resolve(t._0.with(t._1)),
-          function(e) reject(e));
-    });
-  }
+  public static function join<T1,T2,T3>(p1 : Promise<Tuple2<T1,T2>>, p2 : Promise<T3>) : Promise<Tuple3<T1,T2,T3>>
+    return Promises.par(function(f: Tuple2<T1, T2>, g: T3) return f.with(g), p1, p2);
 
   public static function mapTuplePromise<T1,T2,TOut>(promise : Promise<Tuple2<T1,T2>>, success : T1 -> T2 -> Promise<TOut>) : Promise<TOut>
     return promise.flatMap(function(t)
@@ -488,12 +473,7 @@ class PromiseTuple2 {
 
 class PromiseNil {
   public static function join<T2>(p1 : Promise<Nil>, p2 : Promise<T2>) : Promise<T2>
-    return Promise.create(function(resolve, reject) {
-      Promises.join(p1, p2)
-        .either(
-          function(t) resolve(t._1),
-          function(e) reject(e));
-    });
+    return Promises.par(function(_, g) return g, p1, p2);
 
   public static function nil<A>(p : Promise<A>) : Promise<Nil>
     return p.map(const(Nil.nil));
