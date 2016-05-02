@@ -72,7 +72,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   }
 
   @:deprecated("Use Promise.sequence instead.")
-  public static function sequenceAll<T>(arr : Array<Promise<T>>) : Promise<Array<T>>
+  public static function allSequence<T>(arr : Array<Promise<T>>) : Promise<Array<T>>
     return sequence(arr);
 
   public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
