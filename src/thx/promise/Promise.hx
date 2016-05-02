@@ -25,26 +25,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
 
   public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
 
-  public static function sequence(arr : Array<Promise<Dynamic>>) : Promise<Nil>
-    return Promise.create(function(resolve : Dynamic -> Void, reject) {
-      arr = arr.copy();
-      function poll() {
-        if(arr.isEmpty()) {
-          resolve(nil);
-        } else {
-          arr.shift()
-            .success(function(_) poll())
-            .failure(reject);
-        }
-      }
-      poll();
-    });
-
-  public static function afterAll(arr : Array<Promise<Dynamic>>) : Promise<Nil>
-    return Promise.create(function(resolve, reject) {
-      all(arr).mapEither(function(_) resolve(Nil.nil), reject);
-    });
-
+  @:deprecated("Use Promise.sequence instead; since Promise construction is eager there is no difference between the two.")
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
     return if (arr.length == 0) Promise.value([])
     else Promise.create(
@@ -78,14 +59,21 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     );
   }
 
-  public static function allSequence<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
+  public static function afterAll(arr : Array<Promise<Dynamic>>) : Promise<Nil>
+    return sequence(arr).map(const(Nil.nil));
+
+  public static function sequence<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {
     return arr.reduce(
       function(acc: Promise<Array<T>>, p: Promise<T>) return acc.flatMap(
-        function(arr: Array<T>) return p.mapSuccess(function(t) return arr.concat([t]))
+        function(arr: Array<T>) return p.map(function(t) return arr.concat([t]))
       ),
       Promise.value([])
     );
   }
+
+  @:deprecated("Use Promise.sequence instead.")
+  public static function sequenceAll<T>(arr : Array<Promise<T>>) : Promise<Array<T>>
+    return sequence(arr);
 
   public static function create<T>(callback : (T -> Void) -> (Error -> Void) -> Void) : Promise<T>
     return new Promise(

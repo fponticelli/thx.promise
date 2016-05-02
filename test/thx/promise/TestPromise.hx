@@ -92,7 +92,7 @@ class TestPromise {
 
   public function testAllSuccess() {
     var done = Assert.createAsync();
-    Promise.all([
+    Promise.sequence([
       Promise.value(1),
       Promise.value(2)
     ]).success(function(arr) {
@@ -104,7 +104,7 @@ class TestPromise {
   public function testAllFailure1() {
     var done = Assert.createAsync(),
         err  = new Error("error");
-    Promise.all([
+    Promise.sequence([
       Promise.value(1),
       Promise.error(err)
     ])
@@ -119,7 +119,7 @@ class TestPromise {
 
   public function testAllFailure2() {
     var done = Assert.createAsync();
-    Promise.all([res(), res(), rej()])
+    Promise.sequence([res(), res(), rej()])
     .success(function(arr) {
       Assert.fail("should never happen");
     })
@@ -388,7 +388,7 @@ class TestPromise {
   public function testAllMapToTupleFailure() {
     var done = Assert.createAsync(),
         err  = new Error("error");
-    Promise.all([
+    Promise.sequence([
       Promise.error(err),
       Promise.error(err)
     ])
