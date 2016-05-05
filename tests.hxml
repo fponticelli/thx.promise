@@ -3,5 +3,6 @@
 -lib utest
 -lib thx.core
 -D nodejs
+-D travis
 -main TestAll
 # -debug
