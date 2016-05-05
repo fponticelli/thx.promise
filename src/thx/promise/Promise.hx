@@ -39,14 +39,14 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
         // the resulting promise.
         for (i in 0...arr.length) {
           arr[i].either(
-            function(value) {
+            function(v) {
               if (!hasError) {
-                results[i] = value;
+                results[i] = v;
                 counter++;
 
                 if(counter == arr.length) resolve(results);
               }
-            }, 
+            },
             function(err) {
               if (!hasError) {
                 hasError = true;
@@ -80,8 +80,8 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       Future.create(function(cb : PromiseValue<T> -> Void) {
         try {
           callback(
-            function(value : T) cb((Right(value) : PromiseValue<T>)),
-            function(error : Error) cb((Left(error) : PromiseValue<T>))
+            function(v : T)     cb((Right(v) : PromiseValue<T>)),
+            function(e : Error) cb((Left(e) : PromiseValue<T>))
           );
         } catch(e : Dynamic) {
           cb((Left(Error.fromDynamic(e)) : PromiseValue<T>));
@@ -93,8 +93,8 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     return new Promise(
       Future.create(function(cb : PromiseValue<T> -> Void) {
         callback(
-          function(value : T) cb((Right(value) : PromiseValue<T>)),
-          function(error : Error) cb((Left(error) : PromiseValue<T>))
+          function(v : T)     cb((Right(v) : PromiseValue<T>)),
+          function(e : Error) cb((Left(e) : PromiseValue<T>))
         );
       })
     );
@@ -132,12 +132,12 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       this.then(function(r) {
         try {
           switch r {
-            case Right(value):
-              success(value);
-              resolve(value);
-            case Left(error):
-              failure(error);
-              reject(error);
+            case Right(v):
+              success(v);
+              resolve(v);
+            case Left(e):
+              failure(e);
+              reject(e);
           }
         } catch(e : Dynamic) {
           reject(Error.fromDynamic(e));
@@ -187,39 +187,40 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
     );
 
   public function flatMapEitherFuture<TOut>(success : T -> Future<TOut>, failure : Error -> Future<TOut>) : Future<TOut>
-    return this.flatMap(function(result)
+    return this.flatMap(function(result : Result<T, Error>)
       return switch result {
-        case Right(value): success(value);
-        case Left(error):  failure(error);
+        case Right(v): success(v);
+        case Left(e):  failure(e);
       });
 
-  public function flatMapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>) : Promise<TOut>
-    return Promise.createUnsafe(function(resolve, reject) {
-      this.then(function(result) {
+  public function flatMapEither<TOut>(success : T -> Promise<TOut>, failure : Error -> Promise<TOut>) : Promise<TOut> {
+    return Promise.createUnsafe(function(resolve : TOut -> Void, reject : Error -> Void) {
+      this.then(function(result : Result<T, Error>) : Void {
         switch result {
-          case Right(value): try success(value).either(resolve, reject) catch(e : Dynamic) reject(Error.fromDynamic(e));
-          case Left(error):  try failure(error).either(resolve, reject) catch(e : Dynamic) reject(Error.fromDynamic(e));
+          case Right(v): try success(v).either(resolve, reject) catch(e : Dynamic) reject(Error.fromDynamic(e));
+          case Left(e):  try failure(e).either(resolve, reject) catch(e : Dynamic) reject(Error.fromDynamic(e));
         }
       });
     });
+  }
 
   @:deprecated("Promise.mapFailure is deprecated, use Promise.recoverAsFuture instead")
   public function mapFailure(failure : Error -> T) : Future<T>
-    return mapEitherFuture(function(value : T) return value, failure);
+    return mapEitherFuture(function(v : T) return v, failure);
 
   @:deprecated("Promise.mapFailureFuture is deprecated, use Promise.recover instead")
   public function mapFailureFuture(failure : Error -> Future<T>) : Future<T>
-    return flatMapEitherFuture(function(value : T) return Future.value(value), failure);
+    return flatMapEitherFuture(function(v : T) return Future.value(v), failure);
 
   @:deprecated("Promise.mapFailurePromise is deprecated, use Promise.recover instead")
   public function mapFailurePromise(failure : Error -> Promise<T>) : Promise<T>
     return recover(failure);
 
   public function recover(failure : Error -> Promise<T>) : Promise<T>
-    return flatMapEither(function(value) return Promise.value(value), failure);
+    return flatMapEither(function(v) return Promise.value(v), failure);
 
   public function recoverAsFuture(failure : Error -> T) : Future<T>
-    return mapEitherFuture(function(value : T) return value, failure);
+    return mapEitherFuture(function(v : T) return v, failure);
 
   public function map<U>(success : T -> U) : Promise<U>
     return flatMap(function(v) return Promise.value(success(v)));

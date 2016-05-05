@@ -2,7 +2,6 @@
 -cp test
 -lib utest
 -lib thx.core
--lib hxcpp
--cpp bin/cpp
+-D nodejs
 -main TestAll
--D thx-promise
+# -debug

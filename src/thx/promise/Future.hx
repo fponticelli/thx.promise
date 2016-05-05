@@ -30,8 +30,8 @@ class Future<T> {
       var results : Array<T> = [],
           counter = 0;
       arr.mapi(function(p : Future<T>, i : Int) {
-        p.then(function(value : T) {
-          results[i] = value;
+        p.then(function(v : T) {
+          results[i] = v;
           counter++;
           if(counter == arr.length)
             callback(results);
@@ -65,9 +65,9 @@ class Future<T> {
 #if (js || flash || java)
   inline public function delay(?delayms : Int) {
     if(null == delayms)
-      return flatMap(function(value) return Timer.immediateValue(value));
+      return flatMap(function(v) return Timer.immediateValue(v));
     else
-      return flatMap(function(value) return Timer.delayValue(value, delayms));
+      return flatMap(function(v) return Timer.delayValue(v, delayms));
   }
 #end
 
@@ -76,7 +76,7 @@ class Future<T> {
 
   public function map<TOut>(handler : T -> TOut) : Future<TOut>
     return Future.create(function(callback)
-      then(function(value) callback(handler(value))));
+      then(function(v) callback(handler(v))));
 
   public function mapAsync<TOut>(handler : T -> (TOut -> Void) -> Void) : Future<TOut>
     return Future.create(function(callback)
@@ -96,7 +96,7 @@ class Future<T> {
 
   public function flatMap<TOut>(handler : T -> Future<TOut>) : Future<TOut>
     return Future.create(function(callback)
-      then(function(value) handler(value).then(callback)));
+      then(function(v) handler(v).then(callback)));
 
   public function then(handler : T -> Void): Future<T> {
     handlers.push(handler);
@@ -117,16 +117,19 @@ class Future<T> {
     return this;
   }
 
-  function update()
+  function update() {
     switch state {
       case None:
       case Some(result): {
         var index = -1;
-        while(++index < handlers.length)
-          handlers[index](result);
+        while(++index < handlers.length) {
+          var handler = handlers[index];
+          handler(result);
+        }
         handlers = [];
       }
     };
+  }
 }
 
 class Futures {

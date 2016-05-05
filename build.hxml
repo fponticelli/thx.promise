@@ -1,8 +1,2 @@
--cp src
--cp test
--lib utest
--lib thx.core
--D nodejs
--main TestAll
--js bin/test.js
+-cmd haxe tests.hxml -js bin/test.js
 -cmd node bin/test.js
