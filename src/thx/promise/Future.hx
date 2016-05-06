@@ -20,7 +20,7 @@ class Future<T> {
         poll(null);
       });
 
-  #if !java
+  #if !java // java compiler doesn't like it :(
   public static function afterAll(arr : Array<Future<Dynamic>>) : Future<Nil>
     return Future.create(function(callback)
       all(arr).then(function(_) callback(Nil.nil)));
@@ -46,7 +46,6 @@ class Future<T> {
     return future;
   }
 
-  // inline makes Java behave .... groovy
   inline public static function flatten<T>(future : Future<Future<T>>) : Future<T>
     return Future.create(function(callback) {
       future.then(function(future) future.then(callback));
@@ -62,7 +61,7 @@ class Future<T> {
     state = None;
   }
 
-#if (js || flash || java)
+#if (js || flash)
   inline public function delay(?delayms : Int) {
     if(null == delayms)
       return flatMap(function(v) return Timer.immediateValue(v));

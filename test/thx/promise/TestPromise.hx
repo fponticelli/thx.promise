@@ -18,7 +18,7 @@ class TestPromise {
       });
   }
 
-#if (js || swf || java)
+#if (js || swf)
   public function testResolveAfter() {
     var done = Assert.createAsync();
     Promise.value(1)

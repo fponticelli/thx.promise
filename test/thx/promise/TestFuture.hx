@@ -13,7 +13,7 @@ class TestFuture {
     Future.value(1).then(function(v) Assert.equals(1, v));
   }
 
-#if (js || java || flash)
+#if (js || flash)
   public function testThenAfter() {
     var done = Assert.createAsync();
     Timer.delayValue("x", 10)

@@ -145,7 +145,7 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       });
     });
 
-#if (js || flash || java)
+#if (js || flash)
   public function delay(?delayms : Int) : Promise<T>
     return new Promise(this.delay(delayms));
 #end
