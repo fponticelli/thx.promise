@@ -3,6 +3,7 @@ package thx.promise;
 using thx.promise.Promise;
 import utest.Assert;
 import haxe.ds.Either;
+import thx.Result;
 
 class TestTryPromise {
   public function new() {}
