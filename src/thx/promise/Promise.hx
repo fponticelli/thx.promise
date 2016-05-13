@@ -235,6 +235,9 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   inline public function flatMap<TOut>(success : T -> Promise<TOut>) : Promise<TOut>
     return flatMapEither(success, function(err) return Promise.error(err));
 
+  inline public function append<TOut>(success : Void -> Promise<TOut>) : Promise<TOut>
+    return flatMap(function(_) return success());
+
   @:op(A >> B)
   inline public function andThen<B>(next: Void -> Promise<B>): Promise<B>
     return flatMap(function(_) return next());
@@ -477,9 +480,9 @@ class PromiseAPlus {
 }
 
 class PromiseAPlusVoid {
-  public static function promise(p : js.Promise<Void>) : Promise<Nil>
+  public static function promise(p : js.Promise<Void>, ?pos : haxe.PosInfos) : Promise<Nil>
     return Promise.create(function(resolve, reject) {
-      p.then(cast function() resolve(nil), function(e) reject(Error.fromDynamic(e)));
+      p.then(cast function() resolve(nil), function(e) reject(Error.fromDynamic(e, pos)));
     });
 
   public static function aPlus(p : Promise<Void>) : js.Promise<Nil>
