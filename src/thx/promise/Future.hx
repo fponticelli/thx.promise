@@ -8,37 +8,42 @@ using thx.Options;
 import thx.Tuple;
 
 class Future<T> {
-  public static function sequence(arr : Array<Future<Dynamic>>) : Future<Nil>
-    return Future.create(function(callback : Dynamic -> Void) {
-        function poll(_ : Dynamic) {
-          if(arr.length == 0) {
-            callback(nil);
-          } else {
-            arr.shift().then(poll);
-          }
-        }
-        poll(null);
-      });
-
-  #if !java // java compiler doesn't like it :(
-  public static function afterAll(arr : Array<Future<Dynamic>>) : Future<Nil>
-    return Future.create(function(callback)
-      all(arr).then(function(_) callback(Nil.nil)));
-
-  public static function all<T>(arr : Array<Future<T>>) : Future<Array<T>>
+  public static function sequence<T>(arr : Array<Future<T>>) : Future<Array<T>>
     return Future.create(function(callback : Array<T> -> Void) {
-      var results : Array<T> = [],
-          counter = 0;
-      arr.mapi(function(p : Future<T>, i : Int) {
-        p.then(function(v : T) {
-          results[i] = v;
-          counter++;
-          if(counter == arr.length)
-            callback(results);
-        });
+        var acc = [];
+        function poll(index : Int) {
+          if(index == arr.length)
+            return callback(acc);
+          arr[index]
+            .then(function(v) {
+              acc[index] = v;
+              poll(index+1);
+            });
+        }
+        poll(0);
       });
+
+#if java // seriously?
+public static function afterAll<T>(arr : Array<Future<T>>) : Future<Nil>
+  return Future.create(function(callback : Nil -> Void) {
+      function poll(index : Int) {
+        if(index == arr.length)
+          return callback(Nil.nil);
+        arr[index]
+          .then(function(_) {
+            poll(index+1);
+          });
+      }
+      poll(0);
     });
-  #end
+#else
+  public static function afterAll(arr : Array<Future<Dynamic>>) : Future<Nil>
+    return sequence(arr).nil();
+#end
+
+  @:deprecated('Future.all is deprecated, use Future.sequence instead')
+  public static function all<T>(arr : Array<Future<T>>) : Future<Array<T>>
+    return sequence(arr);
 
   public static function create<T>(handler : (T -> Void) -> Void) : Future<T> {
     var future = new Future<T>();
@@ -88,6 +93,9 @@ class Future<T> {
         handler(result)
           .success(resolve)
           .failure(reject)));
+
+  public function nil() : Future<Nil>
+    return map(function(_) return Nil.nil);
 
   @:deprecated("Future.mapFuture is deprecated, use Future.flatMap")
   inline public function mapFuture<TOut>(handler : T -> Future<TOut>) : Future<TOut>

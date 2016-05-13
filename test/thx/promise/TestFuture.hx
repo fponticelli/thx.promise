@@ -69,9 +69,9 @@ class TestFuture {
   }
 
 #if (js || flash)
-  public function testAll() {
+  public function testSequence() {
     var done = Assert.createAsync();
-    Future.all([
+    Future.sequence([
       Timer.delayValue(1, 10),
       Future.value(2)
     ]).then(function(values) {
