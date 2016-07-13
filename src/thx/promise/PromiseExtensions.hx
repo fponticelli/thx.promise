@@ -22,7 +22,7 @@ returning a new value of type `T`.
 
 Similar to `Promise` `mapNull`
 
-If you need to convert `None` into an error rather than a new value of `T`, use `flatMapNone` or `mapNoneToError` instead.
+If you need to convert `None` into an error rather than a new value of `T`, use `mapNoneToError` or `recoverNone` instead.
 **/
   public static function mapNone<T>(promise : Promise<Option<T>>, f : Void -> T) : Promise<T> {
     return recoverNone(promise, function() {
