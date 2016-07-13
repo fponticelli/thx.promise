@@ -8,34 +8,6 @@ using thx.promise.PromiseExtensions;
 class TestPromiseExtensions {
   public function new() {}
 
-  public function testToOptionSuccess() {
-    var done = Assert.createAsync();
-    Promise.value("hi").toOption()
-      .success(function(value) {
-        switch value {
-          case Some(val) : Assert.same("hi", val); done();
-          case None : Assert.fail(); done();
-        }
-      })
-      .failure(function(e) {
-        Assert.fail(); done();
-      });
-  }
-
-  public function testToOptionFailure() {
-    var done = Assert.createAsync();
-    Promise.error(new Error("failed")).toOption()
-      .success(function(value) {
-        switch value {
-          case Some(val) : Assert.fail(); done();
-          case None : Assert.pass(); done();
-        }
-      })
-      .failure(function(e) {
-        Assert.fail(); done();
-      });
-  }
-
   public function testToPromiseSuccess() {
     var done = Assert.createAsync();
     Some("hi").toPromise()
