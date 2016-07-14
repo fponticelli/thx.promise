@@ -165,4 +165,39 @@ class TestPromiseExtensions {
       .success(function(value) { Assert.fail(); done(); })
       .failure(function(e) { Assert.same("one, two, three", e.message); done(); });
   }
+
+  public function testPromiseArrayFirst_Success() {
+    var done = Assert.createAsync();
+    Promise.value([1, 2, 3]).first().success(function(v) { Assert.same(1, v); done(); });
+  }
+
+  public function testPromiseArrayFirst_Failure() {
+    var done = Assert.createAsync();
+    Promise.value([]).first().failure(function(v) { Assert.pass(); done(); });
+  }
+
+  public function testPromiseArraySingle_Success() {
+    var done = Assert.createAsync();
+    Promise.value([1]).first().success(function(v) { Assert.same(1, v); done(); });
+  }
+
+  public function testPromiseArraySingle_Failure_Too_Many() {
+    var done = Assert.createAsync();
+    Promise.value([1, 2, 3]).single().failure(function(v) { Assert.pass(); done(); });
+  }
+
+  public function testPromiseArrayFirst_Failure_Empty() {
+    var done = Assert.createAsync();
+    Promise.value([]).single().failure(function(v) { Assert.pass(); done(); });
+  }
+
+  public function testPromiseArrayLast_Success() {
+    var done = Assert.createAsync();
+    Promise.value([1, 2, 3]).last().success(function(v) { Assert.same(3, v); done(); });
+  }
+
+  public function testPromiseArrayLast_Failure() {
+    var done = Assert.createAsync();
+    Promise.value([]).last().failure(function(v) { Assert.pass(); done(); });
+  }
 }

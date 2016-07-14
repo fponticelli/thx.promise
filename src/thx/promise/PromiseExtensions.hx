@@ -154,4 +154,40 @@ class PromiseArrayExtensions {
   public static function traverse<A, B>(arr : Array<A>, f: A -> Promise<B>): Promise<Array<B>> {
     return Promise.sequence(arr.map(f));
   }
+
+  public static function first<T>(promise : Promise<Array<T>>) : Promise<T> {
+    return promise.flatMap(function(values: Array<T>) : Promise<T> {
+      return if (values == null) {
+        Promise.error(new Error('Resolved Array was null - unable to get first value'));
+      } else if (values.length == 0) {
+        Promise.error(new Error('Resolved Array was empty - unable to get first value'));
+      } else {
+        Promise.value(values[0]);
+      };
+    });
+  }
+
+  public static function single<T>(promise : Promise<Array<T>>) : Promise<T> {
+    return promise.flatMap(function(values: Array<T>) : Promise<T> {
+      return if (values == null) {
+        Promise.error(new Error('Resolved Array was null - unable to get single value'));
+      } else if (values.length != 1) {
+        Promise.error(new Error('Resolved Array did not contain exactly one item - unable to get single value'));
+      } else {
+        Promise.value(values[0]);
+      };
+    });
+  }
+
+  public static function last<T>(promise : Promise<Array<T>>) : Promise<T> {
+    return promise.flatMap(function(values: Array<T>) : Promise<T> {
+      return if (values == null) {
+        Promise.error(new Error('Resolved Array was null - unable to get last value'));
+      } else if (values.length == 0) {
+        Promise.error(new Error('Resolved Array was empty - unable to get last value'));
+      } else {
+        Promise.value(Arrays.last(values));
+      };
+    });
+  }
 }
