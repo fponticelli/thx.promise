@@ -5,7 +5,13 @@ using thx.Arrays;
 import thx.Either;
 using thx.Eithers;
 import thx.Error;
+using thx.Functions;
+import thx.Nel;
 using thx.Options;
+import thx.Validation;
+import thx.Validation.*;
+import thx.Validation.VNel;
+import thx.Validation.VNel.*;
 
 class PromiseOptionExtensions {
 /**
@@ -17,12 +23,12 @@ and `None` will result in a rejected promise with the given (optional) `errormes
   }
 
 /**
-Mapping function for `Promise<Option<T>>` that allows you to intercept and handle a resolved value of `None` by
+Mapping function for `Promise<Option<T>>` that allows the caller to intercept and handle a resolved value of `None` by
 returning a new value of type `T`.
 
 Similar to `Promise` `mapNull`
 
-If you need to convert `None` into an error rather than a new value of `T`, use `mapNoneToError` or `recoverNone` instead.
+If the caller needs to convert `None` into an error rather than a new value of `T`, use `mapNoneToError` or `recoverNone` instead.
 **/
   public static function mapNone<T>(promise : Promise<Option<T>>, f : Void -> T) : Promise<T> {
     return recoverNone(promise, function() {
@@ -51,7 +57,7 @@ of the given `Error`.
   }
 
 /**
-Mapping function for `Promise<Option<T>>` that allows you to intercept and handle a resolved value of `None` by
+Mapping function for `Promise<Option<T>>` that allows the caller to intercept and handle a resolved value of `None` by
 returning a new `Promise<T>` (success or failure).
 **/
   public static function recoverNone<T>(promise : Promise<Option<T>>, f : Void -> Promise<T>) : Promise<T> {
@@ -62,7 +68,86 @@ returning a new `Promise<T>` (success or failure).
       };
     });
   }
+}
 
+class PromiseEitherExtensions {
+/**
+Converts an `Either<E, T>` to a `Promise<T>`, where the `Left` side is considered the error state,
+and is converted to a `thx.Error` using the `leftToError` function provided by the caller.
+**/
+  public static function toPromise<E, T>(either : Either<E, T>, leftToError : E -> Error) : Promise<T> {
+    return either.cata(Promise.error.compose(leftToError), Promise.value);
+  }
+
+/**
+Mapping function for `Promise<Either<E, T>>` that allows the caller to recover from a `Left` value in
+the resolved promise, to return a new `Promise<T>`.
+**/
+  public static function recoverLeft<E, T>(promise : Promise<Either<E, T>>, f : E -> Promise<T>) : Promise<T> {
+    return promise.flatMap(function(either : Either<E, T>) {
+      return switch either {
+        case Left(l) : f(l);
+        case Right(r) : Promise.value(r);
+      };
+    });
+  }
+}
+
+class PromiseEitherErrorOrValueExtensions {
+/**
+Converts an `Either<Error, T>` to a `Promise<T>`, where the `Left` side is considered the error state.
+**/
+  public static function toPromise<T>(either : Either<Error, T>) : Promise<T> {
+    return PromiseEitherExtensions.toPromise(either, Functions.identity);
+  }
+}
+
+class PromiseEitherStringOrValueExtensions {
+/**
+Converts an `Either<String, T>` to a `Promise<T>`, where the `Left` side is considered the error state,
+and is converted to a `thx.Error` using `new Error(str)`.
+**/
+  public static function toPromise<T>(either : Either<String, T>) : Promise<T> {
+    return PromiseEitherExtensions.toPromise(either, function(str) return new Error(str));
+  }
+}
+
+class PromiseVNelExtensions {
+/**
+Converts a `VNel<E, T>` to a `Promise<T>`.  If the `VNel` is `Left`, the left items are combined using the given
+`leftSemigroup`, and the combined value is converted to a `thx.Error` using `leftToError`.
+**/
+  public static function toPromise<E, T>(vnel : VNel<E, T>, leftSemigroup : Semigroup<E>, leftToError : E -> Error) : Promise<T> {
+    return vnel.either.cata(function(errors : Nel<E>) : Promise<T> {
+      return Promise.error(leftToError(errors.fold(leftSemigroup)));
+    }, Promise.value);
+  }
+}
+
+class PromiseVNelErrorOrValueExtensions {
+/**
+Converts a `VNel<Error, T>` to a `Promise<T>`.  If the `VNel` is `Left`, the left `Error`s are combined using
+a semigroup that joins the error messages with ", ", and converted into a new `thx.Error` with the combined error messages.
+
+Stack traces for individual errors are not preserved.
+**/
+  public static function toPromise<T>(vnel : VNel<Error, T>) : Promise<T> {
+    return PromiseVNelExtensions.toPromise(vnel, function(e1, e2) {
+      return new Error([e1.message, e2.message].join(", "));
+    }, Functions.identity);
+  }
+}
+
+class PromiseVNelStringOrValueExtensions {
+/**
+Converts a `VNel<String, T>` to a `Promise<T>`.  If the `VNel` is `Left`, the left `String`s are combined using
+a semigroup that joins them with ", ", and converted into a new `thx.Error` with the combined error messages.
+**/
+  public static function toPromise<T>(vnel : VNel<String, T>) : Promise<T> {
+    return PromiseVNelExtensions.toPromise(vnel, function(s1, s2) {
+      return [s1, s2].join(", ");
+    }, function(str) return new Error(str));
+  }
 }
 
 class PromiseArrayExtensions {
