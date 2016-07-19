@@ -47,7 +47,7 @@ class TestPromiseExtensions {
 
   public function testPromiseOption_MapNone_NoneToException() {
     var done = Assert.createAsync();
-    Promise.value(None)
+    Promise.value((None : Option<String>))
       .mapNone(function() { throw new Error("failed"); })
       .success(function(value) { Assert.fail(); done(); })
       .failure(function(e) { Assert.same("failed", e.message); done(); });
