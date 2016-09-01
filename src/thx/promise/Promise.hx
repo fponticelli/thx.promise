@@ -23,7 +23,9 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
   public static function fromFuture<T>(future : Future<T>) : Promise<T>
     return new Promise(future.map(function(v) return (Right(v) : PromiseValue<T>)));
 
-  public static var nil(default, null) : Promise<Nil> = Promise.value(Nil.nil);
+  // Note: this can be a static var again, when the issue #19 with promise reuse is fixed
+  public static var nil(get, null) : Promise<Nil>;
+  public static function get_nil() : Promise<Nil> return Promise.value(Nil.nil);
 
   @:deprecated("Use Promise.sequence instead; since Promise construction is eager there is no difference between the two.")
   public static function all<T>(arr : Array<Promise<T>>) : Promise<Array<T>> {

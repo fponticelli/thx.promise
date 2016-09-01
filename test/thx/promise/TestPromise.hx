@@ -428,6 +428,55 @@ class TestPromise {
       });
   }
 
+  public function testNilProperty() {
+    var done = Assert.createAsync();
+    return Promise.nil
+      .flatMap(function(_) {
+        return Promise.nil;
+      })
+      .success(function(v) {
+        Assert.same(thx.Nil.nil, v);
+      })
+      .failure(function(e) {
+        Assert.fail(e.message);
+      })
+      .always(done);
+  }
+
+  public function testNilFunction() {
+    var done = Assert.createAsync();
+    Promise.value(42).nil()
+      .flatMap(function(v) {
+        Assert.same(thx.Nil.nil, v);
+        return Promise.value(43).nil();
+      })
+      .success(function(v) {
+        Assert.same(thx.Nil.nil, v);
+      })
+      .failure(function(e) {
+        Assert.fail(e.message);
+      })
+      .always(done);
+  }
+
+  /* This test is currently failing with a call stack overflow, but seems like it should not fail */
+  /*
+  public function testReusePromise() {
+    var done = Assert.createAsync();
+    var p = Promise.value(42);
+    return p.flatMap(function(v) {
+      return p;
+    })
+    .success(function(v) {
+      Assert.same(42, v);
+    })
+    .failure(function(e) {
+      Assert.fail(e.message);
+    })
+    .always(done);
+  }
+  */
+
   function res(?val : String = "resolved") : Promise<String> {
     return Promise.value(val);
   }
