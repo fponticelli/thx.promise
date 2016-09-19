@@ -37,3 +37,9 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
     return function(r: R) return Promises.par(f, run(r), that.run(r));
   }
 }
+
+class PromiseRExtensions {
+  public static function liftR<R, A>(p: Promise<A>): PromiseR<R, A> {
+    return (function(r: R) return p);
+  }
+}
