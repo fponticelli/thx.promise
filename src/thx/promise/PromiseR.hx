@@ -1,6 +1,7 @@
 package thx.promise;
 
 import thx.promise.Promise;
+import thx.Functions.identity;
 using thx.Functions;
 
 /**
@@ -35,11 +36,5 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
 
   public function parWith<B, C>(that: PromiseR<R, B>, f: A -> B -> C): PromiseR<R, C> {
     return function(r: R) return Promises.par(f, run(r), that.run(r));
-  }
-}
-
-class PromiseRExtensions {
-  public static function liftR<R, A>(p: Promise<A>): PromiseR<R, A> {
-    return (function(r: R) return p);
   }
 }
