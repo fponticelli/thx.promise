@@ -59,4 +59,8 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
       function(err: Error) return f(err).run(r)
     );
   }
+
+  public function contramap<R0>(f: R0 -> R): PromiseR<R0, A> {
+    return this.compose(f);
+  }
 }
