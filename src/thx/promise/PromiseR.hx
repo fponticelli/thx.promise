@@ -63,4 +63,8 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
   public function contramap<R0>(f: R0 -> R): PromiseR<R0, A> {
     return this.compose(f);
   }
+
+  public function local<R0>(f: R -> R0, p: PromiseR<R0, A>): PromiseR<R, A> {
+    return function(r: R) return p.run(f(r));
+  }
 }
