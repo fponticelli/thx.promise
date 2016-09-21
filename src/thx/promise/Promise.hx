@@ -165,6 +165,12 @@ abstract Promise<T>(Future<Result<T, Error>>) to Future<Result<T, Error>> {
       case _: true;
     };
 
+  public function isPending() : Bool
+    return switch this.state {
+      case Some(_): false;
+      case None: true;
+    };
+
   public function failure(failure : Error -> Void) : Promise<T>
     return either(function(_){}, failure);
 
