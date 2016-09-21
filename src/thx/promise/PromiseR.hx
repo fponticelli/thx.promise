@@ -45,4 +45,22 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
   public function parWith<B, C>(that: PromiseR<R, B>, f: A -> B -> C): PromiseR<R, C> {
     return function(r: R) return Promises.par(f, run(r), that.run(r));
   }
+
+  public function success(effect: A -> Void): PromiseR<R, A> {
+    return function(r: R) return run(r).success(effect);
+  }
+
+  public function failure(effect: Error -> Void): PromiseR<R, A> {
+    return function(r: R) return run(r).failure(effect);
+  }
+
+  public function recover(f: Error -> PromiseR<R, A>): PromiseR<R, A> {
+    return function(r: R) return run(r).recover(
+      function(err: Error) return f(err).run(r)
+    );
+  }
+
+  public function contramap<R0>(f: R0 -> R): PromiseR<R0, A> {
+    return this.compose(f);
+  }
 }
