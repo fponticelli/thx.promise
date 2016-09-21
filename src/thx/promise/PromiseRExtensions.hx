@@ -4,11 +4,12 @@ import thx.Functions.identity;
 using thx.promise.PromiseExtensions;
 
 class PromiseRExtensions {
-  public static function liftR<R, A>(p: Promise<A>): PromiseR<R, A> {
+  public static inline function liftR<R, A>(p: Promise<A>): PromiseR<R, A> {
     return (function(r: R) return p);
   }
 
-  public static function join<R, A>(p: PromiseR<R,PromiseR<R, A>>): PromiseR<R, A> {
+
+  public static inline function join<R, A>(p: PromiseR<R,PromiseR<R, A>>): PromiseR<R, A> {
     return p.flatMap(identity);
   }
 }

@@ -34,6 +34,14 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
     }
   }
 
+  public function bindPromise<B>(f: A -> Promise<B>): PromiseR<R, B> {
+    return flatMap(
+      function(a: A) {
+        return ((function(r: R) return f(a)) : PromiseR<R, B>);
+      }
+    );
+  }
+
   public function parWith<B, C>(that: PromiseR<R, B>, f: A -> B -> C): PromiseR<R, C> {
     return function(r: R) return Promises.par(f, run(r), that.run(r));
   }
