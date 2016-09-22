@@ -1,7 +1,9 @@
 package thx.promise;
 
-import thx.promise.Promise;
+import thx.Nil;
 import thx.Functions.identity;
+import thx.fp.Functions.const;
+import thx.promise.Promise;
 using thx.Functions;
 
 /**
@@ -66,5 +68,9 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
 
   public function local<R0>(f: R -> R0, p: PromiseR<R0, A>): PromiseR<R, A> {
     return function(r: R) return p.run(f(r));
+  }
+
+  public function nil(): PromiseR<R, Nil> {
+    return function(r: R) return Promise.value(Nil.nil);
   }
 }
