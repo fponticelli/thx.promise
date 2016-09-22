@@ -14,6 +14,10 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
     return function(_: R) return Promise.value(a);
   }
 
+  public static function error<R, A>(err : Error) : PromiseR<R, A> {
+    return function(_: R) return Promise.error(err);
+  }
+
   public static function ask<R>(): PromiseR<R, R> {
     return function(x: R) return Promise.value(x);
   }
