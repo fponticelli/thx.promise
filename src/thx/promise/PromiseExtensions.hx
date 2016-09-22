@@ -151,7 +151,7 @@ a semigroup that joins them with ", ", and converted into a new `thx.Error` with
 }
 
 class PromiseArrayExtensions {
-  public static function traverse<A, B>(arr : Array<A>, f: A -> Promise<B>): Promise<Array<B>> {
+  public static function traverse<A, B>(arr : ReadonlyArray<A>, f: A -> Promise<B>): Promise<Array<B>> {
     return Promise.sequence(arr.map(f));
   }
 

@@ -1,7 +1,9 @@
 package thx.promise;
 
-import thx.promise.Promise;
+import thx.Nil;
 import thx.Functions.identity;
+import thx.fp.Functions.const;
+import thx.promise.Promise;
 using thx.Functions;
 
 /**
@@ -10,6 +12,10 @@ using thx.Functions;
 abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
   public static function pure<R, A>(a: A): PromiseR<R, A> {
     return function(_: R) return Promise.value(a);
+  }
+
+  public static function error<R, A>(err : Error) : PromiseR<R, A> {
+    return function(_: R) return Promise.error(err);
   }
 
   public static function ask<R>(): PromiseR<R, R> {
@@ -32,6 +38,11 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
     return function(r: R) {
       return run(r).flatMap(function(a: A) return f(a).run(r));
     }
+  }
+
+  @:op(P1 >> P2)
+  public function then<B>(p: PromiseR<R, B>): PromiseR<R, B> {
+    return flatMap(const(p));
   }
 
   public function bindPromise<B>(f: A -> Promise<B>): PromiseR<R, B> {
@@ -62,5 +73,13 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
 
   public function contramap<R0>(f: R0 -> R): PromiseR<R0, A> {
     return this.compose(f);
+  }
+
+  public function local<R0>(f: R -> R0, p: PromiseR<R0, A>): PromiseR<R, A> {
+    return function(r: R) return p.run(f(r));
+  }
+
+  public function nil(): PromiseR<R, Nil> {
+    return function(r: R) return Promise.value(Nil.nil);
   }
 }
