@@ -40,6 +40,11 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
     }
   }
 
+  @:op(P1 >> P2)
+  public function then<B>(p: PromiseR<R, B>): PromiseR<R, B> {
+    return flatMap(const(p));
+  }
+
   public function bindPromise<B>(f: A -> Promise<B>): PromiseR<R, B> {
     return flatMap(
       function(a: A) {

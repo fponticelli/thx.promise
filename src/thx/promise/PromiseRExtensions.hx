@@ -15,7 +15,7 @@ class PromiseRExtensions {
 }
 
 class PromiseRArrayExtensions {
-  public static function traverse<R, A, B>(arr : Array<A>, f: A -> PromiseR<R, B>): PromiseR<R, Array<B>> {
+  public static function traverse<R, A, B>(arr : ReadonlyArray<A>, f: A -> PromiseR<R, B>): PromiseR<R, Array<B>> {
     return PromiseR.ask().flatMap(
       function(r: R) return PromiseRExtensions.liftR(arr.traverse(function(a: A) return f(a).run(r)))
     );
