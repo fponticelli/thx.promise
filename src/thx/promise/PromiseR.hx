@@ -57,11 +57,11 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
     return function(r: R) return Promises.par(f, run(r), that.run(r));
   }
 
-  public function success(effect: A -> Void): PromiseR<R, A> {
+  public function successR(effect: A -> Void): PromiseR<R, A> {
     return function(r: R) return run(r).success(effect);
   }
 
-  public function failure(effect: Error -> Void): PromiseR<R, A> {
+  public function failureR(effect: Error -> Void): PromiseR<R, A> {
     return function(r: R) return run(r).failure(effect);
   }
 
