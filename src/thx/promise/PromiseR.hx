@@ -80,6 +80,6 @@ abstract PromiseR<R, A>(R -> Promise<A>) from R -> Promise<A> {
   }
 
   public function nil(): PromiseR<R, Nil> {
-    return function(r: R) return Promise.value(Nil.nil);
+    return flatMap(const(PromiseR.pure(Nil.nil)));
   }
 }
