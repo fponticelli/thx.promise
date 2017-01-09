@@ -16,18 +16,6 @@ class PromiseRFExtensions {
   public static inline function liftRF<R, E, A>(p: Promise<A>): PromiseRF<R, E, A> {
     return (function(r: R) return p.map(Right));
   }
-
-  public static function zipWith<R, E, A, B, C>(pa: PromiseRF<R, E, A>, pb: PromiseRF<R, E, B>, f: A -> B -> C, s: Semigroup<E>): PromiseRF<R, E, C> {
-    return function(r: R) {
-      return Promises.par(
-        function(ea: Either<E, A>, eb: Either<E, B>): Either<E, C> {
-          return val2(f, ea.toValidation(), eb.toValidation(), s).either;
-        },
-        pa.run(r), 
-        pb.run(r)
-      );
-    }
-  }
 }
 
 class PromiseRFArrayExtensions {
