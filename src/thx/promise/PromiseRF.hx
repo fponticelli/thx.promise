@@ -80,14 +80,24 @@ abstract PromiseRF<R, E, A>(PromiseR<R, Either<E, A>>) from PromiseR<R, Either<E
     return function(r: R) return run(r).success.fn(_.each(effect));
   }
 
-  public function failureR(effect: Error -> Void): PromiseRF<R, E, A> {
-    return function(r: R) return run(r).failure(effect);
+  public function mapError<E0>(f: E -> E0): PromiseRF<R, E0, A> {
+    return this.map(
+      function(ea: Either<E, A>) return switch ea {
+        case Left(e): Left(f(e));
+        case Right(a): Right(a);
+      }
+    );
   }
 
-  public function recover(f: Error -> PromiseRF<R, E, A>): PromiseRF<R, E, A> {
-    return function(r: R) return run(r).recover(
-      function(err: Error) return f(err).run(r)
-    );
+  public function flatMapError<E0>(f: E -> PromiseRF<R, E0, A>) {
+    return function(r: R) {
+      return run(r).flatMap(
+        function(ea: Either<E, A>) return switch ea {
+          case Left(e):  f(e).run(r);
+          case Right(a): Promise.value(Right(a));
+        }
+      );
+    }
   }
 
   public function contramap<R0>(f: R0 -> R): PromiseRF<R0, E, A> {
@@ -99,7 +109,7 @@ abstract PromiseRF<R, E, A>(PromiseR<R, Either<E, A>>) from PromiseR<R, Either<E
   }
 
   public function nil(): PromiseRF<R, E, Nil> {
-    return flatMap(const(PromiseRF.pure(Nil.nil)));
+    return map(const(Nil.nil));
   }
 
   /**
