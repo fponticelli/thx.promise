@@ -13,6 +13,7 @@ class TestAll {
     runner.addCase(new thx.promise.TestPromiseRExtensions());
     runner.addCase(new thx.promise.TestPromiseRFExtensions());
     runner.addCase(new thx.promise.TestTryPromise());
+    runner.addCase(new thx.promise.TestDeferred());
     Report.create(runner);
     runner.run();
   }
