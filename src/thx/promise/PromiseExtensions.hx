@@ -155,6 +155,10 @@ class PromiseArrayExtensions {
     return Promise.sequence(arr.map(f));
   }
 
+  public static function traversei<A, B>(arr : ReadonlyArray<A>, f: A -> Int -> Promise<B>): Promise<Array<B>> {
+    return Promise.sequence(arr.mapi(f));
+  }
+
   public static function first<T>(promise : Promise<Array<T>>) : Promise<T> {
     return promise.flatMap(function(values: Array<T>) : Promise<T> {
       return if (values == null) {

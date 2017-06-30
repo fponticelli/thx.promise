@@ -1,6 +1,7 @@
 package thx.promise;
 
 import thx.Either;
+import thx.Eithers;
 import thx.Functions.identity;
 import thx.Nil;
 import thx.Semigroup;
@@ -45,7 +46,7 @@ abstract PromiseRF<R, E, A>(PromiseR<R, Either<E, A>>) from PromiseR<R, Either<E
   }
 
   public function map<B>(f: A -> B): PromiseRF<R, E, B> {
-    return flatMap(pure.compose(f));
+    return flatMap(a -> PromiseRF.pure(f(a)));
   }
 
   public function ap<B>(r: PromiseRF<R, E, A -> B>): PromiseRF<R, E, B> {
