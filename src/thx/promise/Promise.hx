@@ -338,6 +338,12 @@ class Promises {
 
   public static function par6<T1, T2, T3, T4, T5, T6, T7>(f: T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> T7, p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5: Promise<T5>, p6: Promise<T6>): Promise<T7>
     return par(function(f, g) return f(g), par5(f.curry(), p1, p2, p3, p4, p5), p6);
+  
+  public static function par7<T1, T2, T3, T4, T5, T6, T7, T8>(f: T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> T7 -> T8, p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5: Promise<T5>, p6: Promise<T6>, p7: Promise<T7>): Promise<T8>
+    return par(function(f, g) return f(g), par6(f.curry(), p1, p2, p3, p4, p5, p6), p7);
+  
+  public static function par8<T1, T2, T3, T4, T5, T6, T7, T8, T9>(f: T1 -> T2 -> T3 -> T4 -> T5 -> T6 -> T7 -> T8 -> T9, p1 : Promise<T1>, p2 : Promise<T2>, p3 : Promise<T3>, p4 : Promise<T4>, p5: Promise<T5>, p6: Promise<T6>, p7: Promise<T7>, p8: Promise<T8>): Promise<T9>
+    return par(function(f, g) return f(g), par7(f.curry(), p1, p2, p3, p4, p5, p6, p7), p8);
 
   inline public static function join<T1,T2>(p1 : Promise<T1>, p2 : Promise<T2>) : Promise<Tuple2<T1,T2>>
     return par(Tuple.of, p1, p2);
