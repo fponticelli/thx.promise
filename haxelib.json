@@ -5,8 +5,8 @@
   "classPath": "src",
   "tags": ["thx", "promise", "async", "cross"],
   "description": "Library for lightweight promises and futures.",
-  "releasenote": "General improvements.",
-  "version": "0.6.0",
+  "releasenote": "Add Deferred.",
+  "version": "0.7.0",
   "contributors": ["fponticelli"],
   "dependencies": {
     "thx.core": ""
